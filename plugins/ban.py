@@ -32,7 +32,7 @@ from utils.permissions import adminsOnly, member_permissions
 
 warnsdb = mongodb.warns
 
-__MODULE__ = "بن"
+__MODULE__ = "امنیت گروه"
 __HELP__ = """
 /ban - Ban A User
 /sban - Delete all messages of user that sended in group and ban the user
