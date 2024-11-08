@@ -34,31 +34,33 @@ warnsdb = mongodb.warns
 
 __MODULE__ = "امنیت گروه"
 __HELP__ = """
-/ban - Ban A User
-/sban - Delete all messages of user that sended in group and ban the user
-/tban - Ban A User For Specific Time
-/unban - Unban A User
-/warn - Warn A User
-/swarn - Delete all the message sended in group and warn the user
-/rmwarns - Remove All Warning of A User
-/warns - Show Warning Of A User
-/kick - Kick A User
-/skick - Delete the replied message kicking its sender
-/purge - Purge Messages
-/purge [n] - Purge "n" number of messages from replied message
-/del - Delete Replied Message
-/promote - Promote A Member
-/fullpromote - Promote A Member With All Rights
-/demote - Demote A Member
-/pin - Pin A Message
-/unpin - unpin a message
-/unpinall - unpinall messages
-/mute - Mute A User
-/tmute - Mute A User For Specific Time
-/unmute - Unmute A User
-/zombies - Ban Deleted Accounts
-/report | @admins | @admin - Report A Message To Admins.
-/link - Send in Group/SuperGroup Invite Link."""
+
+دستورات برای امنیت گروه
+
+/ban   ‎(بن) حذف یک کاربر
+/sban (بن حذف) پاک کردن تمام پیام عای کاربر و حذف
+/tban (تایم بن) حذف کاربر برای زمان مشخص
+/unban (حذف بن)
+/warn -(اخطار) اخطار به کاربر
+/swarn حذف تمام پیام های کاربر و اخطار به کاربر
+/rmwarns - (حذف اخطار )
+/warns  (اخطار های کاربر)
+/kick (ضربه)
+/purge - (پاکسازی)
+/purge [500] پیام هارا به تعداد دلخواه حذف کنید
+/del -(دیل) حذف یک پیام
+/promote (تنظیم مدیر)- ادمین کردن کاربر
+/fullpromote (فول ادمین)- ادمین کردن کاربر با تمام اختیارات 
+/demote (حذف مدیر)- یک کاربر را از ادمینی برکنار کنید
+/pin -(پین)
+/unpin  (حذف پین)
+/unpinall (حذف پینشده ها)
+/mute - (سکوت)
+/tmute -(تایم سکوت) سکوت کردن کاربر برای زمان مشخص
+/unmute - (حذف سکوت)
+/zombies زامبی- اکانت های دلیت شده را حذف کنید
+/report (گزارش) گزارش پیام به ادمین ها
+/link (لینک) - با دستور لینک لینک گروه رو دریافت کنید """
 
 
 async def int_to_alpha(user_id: int) -> str:
