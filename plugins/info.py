@@ -79,15 +79,15 @@ async def get_user_info(user, already=False):
     is_sudo = user_id in SUDOERS
     is_premium = user.is_premium
     body = {
-        "ɴᴀᴍᴇ": [first_name],
-        "ᴜsᴇʀɴᴀᴍᴇ": [("@" + username) if username else "Null"],
-        "ɪᴅ": user_id,
-        "ᴅᴄ ɪᴅ": dc_id,
+        "نام": [first_name],
+        "نام کاربری": [("@" + username) if username else "Null"],
+        "ایدی": user_id,
+        "ᴅᴄ ایدی ": dc_id,
         "ᴍᴇɴᴛɪᴏɴ": [mention],
-        "ᴘʀᴇɪᴍɪᴜᴍ": is_premium,
-        "ʟᴀsᴛ sᴇᴇɴ": online,
+        "پریمیوم": is_premium,
+        "آخرین بازدید": online,
     }
-    caption = section("ᴜsᴇʀ ɪɴғᴏ", body)
+    caption = section("مشخصات کاربری", body)
     return [caption, photo_id]
 
 
@@ -120,7 +120,7 @@ async def get_chat_info(chat):
     return info, photo_id
 
 
-@app.on_message(filters.command(["info",'ایدی'],prefixes=["", "/"])
+@app.on_message(filters.command("info"))
 async def info_func(_, message: Message):
     if message.reply_to_message:
         user = message.reply_to_message.from_user.id
@@ -153,7 +153,7 @@ async def info_func(_, message: Message):
     os.remove(photo)
 
 
-@app.on_message(filters.command(["chatinfo", 'چت ایدی'],prefixes=["", "/"])
+@app.on_message(filters.command("chatinfo"))
 async def chat_info_func(_, message: Message):
     splited = message.text.split()
     if len(splited) == 1:
@@ -178,7 +178,7 @@ async def chat_info_func(_, message: Message):
         await m.edit(e)
 
 
-__MODULE__ = "Iɴғᴏ"
+__MODULE__ = "مشخصات"
 __HELP__ = """
 **ᴜsᴇʀ & ᴄʜᴀᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ:**
 
