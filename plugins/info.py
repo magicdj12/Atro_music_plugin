@@ -120,7 +120,7 @@ async def get_chat_info(chat):
     return info, photo_id
 
 
-@app.on_message(filters.command(["info",'ایدی']))
+@app.on_message(filters.command(["info",'ایدی']))prefixes["","/"]
 async def info_func(_, message: Message):
     if message.reply_to_message:
         user = message.reply_to_message.from_user.id
@@ -153,7 +153,7 @@ async def info_func(_, message: Message):
     os.remove(photo)
 
 
-@app.on_message(filters.command(["chatinfo", 'چت ایدی']))
+@app.on_message(filters.command(["chatinfo", 'چت ایدی']))=prefixes["","/"]
 async def chat_info_func(_, message: Message):
     splited = message.text.split()
     if len(splited) == 1:
