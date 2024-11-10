@@ -50,7 +50,7 @@ def web_download(client, message):
         message.reply_document(document="website.txt", caption=f"Source code of {url}")
 
 
-__MODULE__ = "Wᴇʙᴅʟ"
+# __MODULE__ = "Wᴇʙᴅʟ"
 __HELP__ = """
 **ᴄᴏᴍᴍᴀɴᴅ:**
 
