@@ -90,8 +90,7 @@ async def remove(client, message):
     except FloodWait as e:
         await asyncio.sleep(e.value)
 
-
-__MODULE__ = "Zᴏᴍʙɪᴇs"
+# __MODULE__ = "Zᴏᴍʙɪᴇs"
 __HELP__ = """
 **commands:**
 - /zombies: ʀᴇᴍᴏᴠᴇ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs ғʀᴏᴍ ᴛʜᴇ ɢʀᴏᴜᴘ.
