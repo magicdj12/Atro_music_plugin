@@ -22,7 +22,7 @@ async def write(client, message):
         await nan.edit(e)
 
 
-__MODULE__ = "Wʀɪᴛᴇ"
+#__MODULE__ = "Wʀɪᴛᴇ"
 __HELP__ = """
 **COMMANDS**:
 - /write: ᴡʀɪᴛᴇ ᴛᴇxᴛ ᴏɴ ᴀɴ ᴄʟᴏᴜᴅ ᴀɴᴅ ɢᴇᴛ ᴀɴ ᴇᴅɪᴛᴇᴅ ᴘʜᴏᴛᴏ.
