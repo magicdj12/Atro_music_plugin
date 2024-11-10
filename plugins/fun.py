@@ -79,7 +79,7 @@ async def dice_again(client, query):
     await client.send_dice(query.message.chat.id, reply_markup=keyboard)
 
 
-__MODULE__ = "سرگرمی"
+# __MODULE__ = "سرگرمی"
 __HELP__ = """
 **ʜᴀᴠɪɴɢ ꜰᴜɴ:**
 
