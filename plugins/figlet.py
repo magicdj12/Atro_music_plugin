@@ -56,7 +56,7 @@ async def figlet_handler(Client, query: CallbackQuery):
         return await query.answer(e, show_alert=True)
 
 
-__MODULE__ = "فونت"
+# __MODULE__ = "فونت"
 __HELP__ = """
 دستورات فونت 
 با این دستور شما میتوانید هر نوع متنی را به زیبا ترین فونت تبدیل نماید با مدل های مختلف 
