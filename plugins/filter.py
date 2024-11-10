@@ -24,7 +24,7 @@ from utils.permissions import adminsOnly, member_permissions
 from .notes import extract_urls
 
 
-__MODULE__ = "فیلتر"
+# __MODULE__ = "فیلتر"
 __HELP__ = """/filters To Get All The Filters In The Chat.
 /filter [FILTER_NAME] To Save A Filter(reply to a message).
 
