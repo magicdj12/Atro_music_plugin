@@ -101,7 +101,7 @@ async def get_chat_info(chat):
              ✦ ᴄʜᴀᴛ ɪɴғᴏ ✦
 
 ➻ ᴄʜᴀᴛ ɪᴅ ‣ {chat.id}
-➻ ɴᴀᴍᴇ ‣ {chat.title}
+➻ اسم ‣ {chat.title}
 ➻ ᴜsᴇʀɴᴀᴍᴇ ‣ {chat.username}
 ➻ ᴅᴄ ɪᴅ ‣ {chat.dc_id}
 ➻ ᴅᴇsᴄʀɪᴘᴛɪᴏɴ  ‣ {chat.description}
@@ -178,7 +178,7 @@ async def chat_info_func(_, message: Message):
         await m.edit(e)
 
 
-__MODULE__ = "مشخصات"
+# __MODULE__ = "مشخصات"
 __HELP__ = """
 **ᴜsᴇʀ & ᴄʜᴀᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ:**
 
