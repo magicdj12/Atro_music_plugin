@@ -255,7 +255,7 @@ async def get_goodbye_func(_, message):
     )
 
 
-__MODULE__ = "روز بخیری"
+# __MODULE__ = "روز بخیری"
 __HELP__ = """
 ʜᴇʀᴇ ɪs ᴛʜᴇ ʜᴇʟᴘ ғᴏʀ ɢᴏᴏᴅʙʏᴇ:
 
