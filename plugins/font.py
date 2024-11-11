@@ -2366,7 +2366,7 @@ class Fonts:
         return text
 
 
-@app.on_message(filters.command(["font", "fonts"]))
+@app.on_message(filters.command(["font", "fonts","فونت"],prefixes=["", "/"]))
 async def style_buttons(c, m, cb=False):
     buttons = [
         [
