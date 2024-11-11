@@ -212,7 +212,7 @@ async def manual(app, cb):
     return await cb.message.delete()
 
 
-__MODULE__ = "تاییدخودکار"
+# __MODULE__ = "تاییدخودکار"
 __HELP__ = """
 در اینجا راهنمایی برای تایید خودکار کاربران در گروه های درخواستی هست
 
