@@ -26,7 +26,7 @@ async def advice(_, message):
         await app.send_message(LOG_GROUP_ID, "/astronomical not working")
 
 
-__MODULE__ = "بیوگرافی"
+# __MODULE__ = "بیوگرافی"
 __HELP__ = """
 با این دستور میتوانید بیوگرافی دریافت کنید
   𝄞 بیو
