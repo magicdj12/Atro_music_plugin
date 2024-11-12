@@ -82,7 +82,7 @@ async def get_user_info(user, already=False):
         "نام": [first_name],
         "نام کاربری": [("@" + username) if username else "Null"],
         "ایدی": user_id,
-        "ᴅᴄ ایدی ": dc_id,
+        "شماره ": dc_id,
         "لینک": [mention],
         "پریمیوم": is_premium,
         "آخرین بازدید": online,
