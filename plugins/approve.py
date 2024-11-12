@@ -21,7 +21,7 @@ def smallcap(text):
     return text.translate(trans_table)
 
 
-@app.on_message(filters.command("autoapprove") & filters.group)
+@app.on_message(filters.command(["autoapprove","تایید خودکار"],prefixes=["", "/"]) & filters.group)
 @adminsOnly("can_change_info")
 async def approval_command(client, message):
     chat_id = message.chat.id
