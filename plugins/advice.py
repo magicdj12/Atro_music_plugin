@@ -5,7 +5,7 @@ from TheApi import api
 from YukkiMusic import app
 
 
-@app.on_message(filters.command("advice"))
+@app.on_message(filters.command(["advice","بیو"],prefixes=["", "/"]))
 async def advice(_, message):
     A = await message.reply_text("...")
     res = api.get_advice()
