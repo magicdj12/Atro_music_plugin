@@ -3,7 +3,7 @@ from pyrogram import filters
 from YukkiMusic import app
 
 
-@app.on_message(filters.command(["FAKE", "fake"]))
+@app.on_message(filters.command(["FAKE", "fake","فیک"]))
 async def fkadress(_, message):
     query = message.text.split(maxsplit=1)[1].strip()
     url = f"https://randomuser.me/api/?nat={query}"
