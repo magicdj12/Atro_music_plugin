@@ -118,7 +118,7 @@ async def save_filters(_, message):
         )
 
 
-@app.on_message(filters.command("filters") & ~filters.private & ~BANNED_USERS)
+@app.on_message(filters.command(['filters','فیلتیر']) & ~filters.private & ~BANNED_USERS)
 @capture_err
 async def get_filterss(_, message):
     _filters = await get_filters_names(message.chat.id)
