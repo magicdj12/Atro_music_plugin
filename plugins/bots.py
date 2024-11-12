@@ -5,7 +5,7 @@ from pyrogram.errors import FloodWait
 from YukkiMusic import app
 
 
-@app.on_message(filters.command("bots") & filters.group)
+@app.on_message(filters.command(["bots","باتها"],prefixes=["", "/"]) & filters.group)
 async def bots(client, message):
 
     try:
