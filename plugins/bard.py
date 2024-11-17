@@ -1,26 +1,55 @@
-import requests
+import random
+
 from pyrogram import filters
-
 from YukkiMusic import app
-from SafoneAPI import SafoneAPI
 
 
-@app.on_message(filters.command(["bard","بارد"],prefixes=["", "/"]))
-async def bard(bot, message):
-    if len(message.command) < 2 and not message.reply_to_message:
-        await message.reply_text(
-            "نمونه:\n\n/bard روش درست درس خواندن "
+def get_random_message(love_percentage):
+    if love_percentage <= 30:
+        return random.choice(
+            [
+                "Love is in the air but needs a little spark.",
+                "A good start but there's room to grow.",
+                "It's just the beginning of something beautiful.",
+            ]
         )
-        return
-
-    if message.reply_to_message and message.reply_to_message.text:
-        user_input = message.reply_to_message.text
+    elif love_percentage <= 70:
+        return random.choice(
+            [
+                "A strong connection is there. Keep nurturing it.",
+                "You've got a good chance. Work on it.",
+                "Love is blossoming, keep going.",
+            ]
+        )
     else:
-        user_input = " ".join(message.command[1:])
+        return random.choice(
+            [
+                "Wow! It's a match made in heaven!",
+                "Perfect match! Cherish this bond.",
+                "Destined to be together. Congratulations!",
+            ]
+        )
 
-    try:
-        Z = await SafoneAPI().bard(user_input)
-        result = Z["candidates"][0]["content"]["parts"][0]["text"]
-        await message.reply_text(result)
-    except requests.exceptions.RequestException as e:
-        pass
+
+@app.on_message(filters.command("love", prefixes="/"))
+def love_command(client, message):
+    command, *args = message.text.split(" ")
+    if len(args) >= 2:
+        name1 = args[0].strip()
+        name2 = args[1].strip()
+
+        love_percentage = random.randint(10, 100)
+        love_message = get_random_message(love_percentage)
+
+        response = f"{name1}💕 + {name2}💕 = {love_percentage}%\n\n{love_message}"
+    else:
+        response = "Please enter two names after /love command."
+    app.send_message(message.chat.id, response)
+
+
+__MODULE__ = "Lᴏᴠᴇ"
+__HELP__ = """
+**ʟᴏᴠᴇ ᴄᴀʟᴄᴜʟᴀᴛᴏʀ:**
+
+• `/love [name1] [name2]`: Cᴀʟᴄᴜʟᴀᴛᴇs ᴛʜᴇ ᴘᴇʀᴄᴇɴᴛᴀɢᴇ ᴏғ ʟᴏᴠᴇ ʙᴇᴛᴡᴇᴇɴ ᴛᴡᴏ ᴘᴇᴏᴘʟᴇ.
+"""
