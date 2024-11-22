@@ -19,8 +19,8 @@ async def chatgpt_chat(bot, message):
     else:
         user_input = " ".join(message.command[1:])
 
-    await bot.send_chat_action(message.chat.id, ChatAction.TYPING)
     results = api.chatgpt(user_input)
+    await bot.send_chat_action(message.chat.id, ChatAction.TYPING)
     await message.reply_text(results)
 
 
