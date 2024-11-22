@@ -3,6 +3,10 @@ from pyrogram import filters
 from pyrogram.enums import ChatAction
 from TheApi import api
 from YukkiMusic import app
+import requests
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from YukkiMusic import app
+
 
 
 @app.on_message(filters.command(["chatgpt", "ai", "ask"]) & ~BANNED_USERS)
