@@ -1,55 +1,27 @@
-import random
-
 from pyrogram import filters
+from pyrogram.types import Message
 from YukkiMusic import app
 
-
-def get_random_message(love_percentage):
-    if love_percentage <= 30:
-        return random.choice(
-            [
-                "Love is in the air but needs a little spark.",
-                "A good start but there's room to grow.",
-                "It's just the beginning of something beautiful.",
-            ]
-        )
-    elif love_percentage <= 70:
-        return random.choice(
-            [
-                "A strong connection is there. Keep nurturing it.",
-                "You've got a good chance. Work on it.",
-                "Love is blossoming, keep going.",
-            ]
-        )
-    else:
-        return random.choice(
-            [
-                "Wow! It's a match made in heaven!",
-                "Perfect match! Cherish this bond.",
-                "Destined to be together. Congratulations!",
-            ]
-        )
+def bold(x):
+    return f"**{x}:** "
 
 
-@app.on_message(filters.command("love", prefixes="/"))
-def love_command(client, message):
-    command, *args = message.text.split(" ")
-    if len(args) >= 2:
-        name1 = args[0].strip()
-        name2 = args[1].strip()
-
-        love_percentage = random.randint(10, 100)
-        love_message = get_random_message(love_percentage)
-
-        response = f"{name1}💕 + {name2}💕 = {love_percentage}%\n\n{love_message}"
-    else:
-        response = "Please enter two names after /love command."
-    app.send_message(message.chat.id, response)
+def bold_ul(x):
+    return f"**--{x}:**-- "
 
 
-__MODULE__ = "Lᴏᴠᴇ"
+def mono(x):
+    return f"`{x}`\n"
+
+@app.on_message(filters.command(["عشق",'love'],prefixes=["", "/"]))
+async def chat_info_func(_, message: Message):
+    chat = message.chat.id
+    user_input = message.text.split(' ')
+    if len(user_input) == 3:
+        app.send_message(chat,user_input)
+
+# __MODULE__ = "عشق"
 __HELP__ = """
-**ʟᴏᴠᴇ ᴄᴀʟᴄᴜʟᴀᴛᴏʀ:**
-
-• `/love [name1] [name2]`: Cᴀʟᴄᴜʟᴀᴛᴇs ᴛʜᴇ ᴘᴇʀᴄᴇɴᴛᴀɢᴇ ᴏғ ʟᴏᴠᴇ ʙᴇᴛᴡᴇᴇɴ ᴛᴡᴏ ᴘᴇᴏᴘʟᴇ.
+• عشق نام کاربر نام کاربری دوم
+• عشق سلیم فواد
 """
