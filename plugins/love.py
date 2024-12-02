@@ -18,9 +18,9 @@ async def chat_info_func(_, message: Message):
     
     chat = message.chat.id
     user_input = message.text.split(' ')
-    message.reply_text(user_input)
+    message.reply(user_input)
     if len(user_input) == 3:
-        message.reply_text(chat,user_input)
+        message.reply(chat,user_input)
 
 # __MODULE__ = "عشق"
 __HELP__ = """
