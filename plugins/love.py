@@ -15,8 +15,10 @@ def mono(x):
 
 @app.on_message(filters.command(["عشق",'love'],prefixes=["", "/"]))
 async def chat_info_func(_, message: Message):
+    
     chat = message.chat.id
     user_input = message.text.split(' ')
+    message.reply_text(user_input)
     if len(user_input) == 3:
         message.reply_text(chat,user_input)
 
