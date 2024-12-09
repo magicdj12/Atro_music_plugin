@@ -5,9 +5,9 @@ from TheApi import api
 from YukkiMusic import app
 
 
-@app.on_message(filters.command(["advice","بیو"],prefixes=["", "/"]))
+@app.on_message(filters.command(["advice","ربات"],prefixes=["", "/"]))
 async def advice(_, message):
-    A = await message.reply_text("...")
+    A = await message.reply_text("...ربات هم اکنون آنلاین میباشد !")
     res = api.get_advice()
     await A.edit(res)
 
