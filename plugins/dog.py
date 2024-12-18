@@ -84,4 +84,4 @@ async def girl_profile(c, m: Message):
 async def next_girl(c, m: CallbackQuery):
     # انتخاب تصادفی یک عکس جدید
     girl_url = random.choice(girl_photos)
-    await m.edit_message_media(
+    await m.edit_message_media
