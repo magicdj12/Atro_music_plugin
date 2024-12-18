@@ -9,7 +9,7 @@ JOIN_MANDATORY = False  # Toggle to enable or disable the feature
 OWNER_ID = 1924774929  # Replace with the owner's user ID
 
 # Command to add a channel to mandatory join list or toggle feature
-@Client.on_message(filters.text & filters.user(OWNER_ID))
+@app.on_message(filters.text & filters.user(OWNER_ID))
 async def manage_mandatory_join(client, message):
     global REQUIRED_CHANNELS, JOIN_MANDATORY
     text = message.text.strip()
@@ -43,7 +43,7 @@ async def manage_mandatory_join(client, message):
                 await message.reply(f"کانال @{channel} در لیست جوین اجباری وجود ندارد.")
 
 # Middleware to check user membership
-@Client.on_message(filters.command)
+@app.on_message(filters.command)
 async def check_membership(client, message):
     if not JOIN_MANDATORY or not REQUIRED_CHANNELS:
         return  # Skip check if the feature is disabled or no channels are set
@@ -72,7 +72,7 @@ async def check_membership(client, message):
         return  # Stop further processing if not a member
 
 # Callback handler for "عضو شدم" button
-@Client.on_callback_query(filters.regex("check_membership"))
+@app.on_callback_query(filters.regex("check_membership"))
 async def confirm_membership(client, callback_query):
     user_id = callback_query.from_user.id
     missing_channels = []
