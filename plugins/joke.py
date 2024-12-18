@@ -77,7 +77,7 @@ BIOGRAPHIES = [
 async def get_bio(_, message):
     if message.text.strip() in ["بیو", "بیوگرافی"]:  # بررسی دستورات فارسی
         random_bio = random.choice(BIOGRAPHIES)
-        refresh_button = InlineKeyboardButton("تازه‌سازی", callback_data="refresh_bio")
+        refresh_button = InlineKeyboardButton("بیو بعدی👨‍🦯", callback_data="refresh_bio")
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[refresh_button]])
         await message.reply_text(
             random_bio, reply_markup=keyboard, parse_mode=ParseMode.HTML
@@ -90,7 +90,7 @@ async def refresh_bio(_, query):
     await query.message.edit_text(
         new_bio,
         reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton("تازه‌سازی", callback_data="refresh_bio")]]
+            [[InlineKeyboardButton("بیو بعدی👨‍🦯", callback_data="refresh_bio")]]
         ),
         parse_mode=ParseMode.HTML,
     )
