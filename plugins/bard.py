@@ -29,7 +29,7 @@ def get_random_message(love_percentage):
         )
 
 
-@app.on_message(filters.command("love", prefixes="/"))
+@app.on_message(filters.command(["love","کراشم","عشق"], prefixes="/"))
 def love_command(client, message):
     args = message.text.split()[1:]  # حذف دستور و دریافت نام‌ها
     if len(args) >= 2:
