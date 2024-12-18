@@ -100,6 +100,3 @@ async def confirm_user_membership(client, callback_query):
     else:
         await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)
 
-# اجرای ربات
-if name == "main":
-    app.run()
