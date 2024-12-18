@@ -1,3 +1,4 @@
+MohammaD, [12/18/2024 12:55 AM]
 from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -15,32 +16,48 @@ async def manage_mandatory_join(client, message):
     text = message.text.strip()
 
     # Add channel to the list
-    if text.startswith("جوین اجباری"):
-        parts = text.split()
-        if len(parts) == 2:
-            channel = parts[1]
-            if channel not in REQUIRED_CHANNELS:
-                REQUIRED_CHANNELS.append(channel)
-                await message.reply(f"کانال @{channel} به لیست جوین اجباری اضافه شد.")
-            else:
-                await message.reply(f"کانال @{channel} از قبل در لیست موجود است.")
-        elif len(parts) == 1 and "فعال" in text:
-            JOIN_MANDATORY = True
-            await message.reply("قابلیت جوین اجباری فعال شد.")
-        elif len(parts) == 1 and "غیرفعال" in text:
-            JOIN_MANDATORY = False
-            await message.reply("قابلیت جوین اجباری غیرفعال شد.")
+    if text == "جوین اجباری":
+        await message.reply("لطفاً لینک یا شناسه عددی کانالی که می‌خواهید به لیست جوین اجباری اضافه کنید را ارسال کنید.")
+
+    elif text.startswith("https://") or text.isdigit():
+        # Channel ID or link has been provided
+        channel = text
+        if channel not in REQUIRED_CHANNELS:
+            REQUIRED_CHANNELS.append(channel)
+            await message.reply(f"کانال @{channel} به لیست جوین اجباری اضافه شد.")
+        else:
+            await message.reply(f"کانال @{channel} از قبل در لیست جوین اجباری موجود است.")
+
+    # List all required channels
+    elif text == "لیست جوین اجباری":
+        if REQUIRED_CHANNELS:
+            channels_list = "\n".join(REQUIRED_CHANNELS)
+            await message.reply(f"کانال‌های جوین اجباری:\n{channels_list}")
+        else:
+            await message.reply("هیچ کانالی به لیست جوین اجباری اضافه نشده است.")
 
     # Remove channel from the list
-    elif text.startswith("حذف جوین اجباری"):
-        parts = text.split()
-        if len(parts) == 2:
-            channel = parts[1]
-            if channel in REQUIRED_CHANNELS:
-                REQUIRED_CHANNELS.remove(channel)
-                await message.reply(f"کانال @{channel} از لیست جوین اجباری حذف شد.")
-            else:
-                await message.reply(f"کانال @{channel} در لیست جوین اجباری وجود ندارد.")
+    elif text == "حذف جوین":
+        await message.reply("لطفاً لینک یا شناسه عددی کانالی که می‌خواهید از لیست جوین اجباری حذف کنید را ارسال کنید.")
+
+    elif text.startswith("https://") or text.isdigit():
+        # Channel ID or link has been provided to remove
+        channel = text
+        if channel in REQUIRED_CHANNELS:
+            REQUIRED_CHANNELS.remove(channel)
+            await message.reply(f"کانال @{channel} از لیست جوین اجباری حذف شد.")
+        else:
+            await message.reply(f"کانال @{channel} در لیست جوین اجباری وجود ندارد.")
+
+    # Enable mandatory join feature
+    elif text == "جوین روشن":
+        JOIN_MANDATORY = True
+        await message.reply("قابلیت جوین اجباری فعال شد. کاربران باید عضو کانال‌ها شوند تا بتوانند از ربات استفاده کنند.")
+
+    # Disable mandatory join feature
+    elif text == "جوین خاموش":
+        JOIN_MANDATORY = False
+        await message.reply("قابلیت جوین اجباری غیرفعال شد. کاربران نیازی به عضویت در کانال‌ها ندارند.")
 
 # Middleware to check user membership
 @app.on_message(filters.command)
@@ -83,7 +100,8 @@ async def confirm_membership(client, callback_query):
         except UserNotParticipant:
             missing_channels.append(channel)
 
-    if missing_channels:
+MohammaD, [12/18/2024 12:55 AM]
+if missing_channels:
         await callback_query.answer("شما هنوز عضو نشده‌اید.", show_alert=True)
     else:
         await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)
