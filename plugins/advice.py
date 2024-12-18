@@ -7,7 +7,7 @@ from YukkiMusic import app
 
 @app.on_message(filters.command(["advice","ربات"],prefixes=["", "/"]))
 async def advice(_, message):
-    A = await message.reply_text("...ربات هم اکنون آنلاین میباشد !")
+    A = await message.reply_text("ربات هم اکنون آنلاین میباشد !")
     res = api.get_advice()
     await A.edit(res)
 
