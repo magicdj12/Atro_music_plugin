@@ -1,4 +1,3 @@
-MohammaD, [12/18/2024 12:55 AM]
 from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -100,7 +99,6 @@ async def confirm_membership(client, callback_query):
         except UserNotParticipant:
             missing_channels.append(channel)
 
-MohammaD, [12/18/2024 12:55 AM]
 if missing_channels:
         await callback_query.answer("شما هنوز عضو نشده‌اید.", show_alert=True)
     else:
