@@ -64,13 +64,13 @@ async def send_private(Client, query: CallbackQuery):
             # اگر کاربر ربات را استارت نکرده باشد
             await query.bot.send_message(sender_id, f"کاربر {sender.first_name} هنوز ربات را استارت نکرده! 😂")
 
-        # ارسال پیام مخفی در پیوی
-        await query.bot.send_message(user_id, f"پیام مخفی از {sender.first_name}:\n{hidden_message}")
-
+        # ارسال پیام مخفی به پیوی
+        sent_message = await query.bot.send_message(user_id, f"پیام مخفی از {sender.first_name}:\n{hidden_message}")
+        
         # دکمه‌ها برای کاربر ارسال‌کننده
         keyboard = InlineKeyboardMarkup(
             [
-                [InlineKeyboardButton("پاسخ به پیام", callback_data=f"reply_{user_id}")],
+                [InlineKeyboardButton("پاسخ به پیام", callback_data=f"reply_{user_id}_{sent_message.message_id}")],
                 [InlineKeyboardButton("بستن", callback_data="close")]
             ]
         )
@@ -173,9 +173,11 @@ async def delete_message(Client, query: CallbackQuery):
 
 @app.on_callback_query(filters.regex(r"reply_"))
 async def reply_message(Client, query: CallbackQuery):
-    user_id = int(query.data.split("_")[1])
-
     # ارسال پیام ناشناس به کاربر
+    data = query.data.split("_")
+    user_id = int(data[1])
+    message_id = int(data[2])
+
     await query.message.edit_text("لطفاً پیامی برای پاسخ ارسال کنید.")
 
     @app.on_message(filters.text & filters.private)
