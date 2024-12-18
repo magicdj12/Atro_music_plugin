@@ -3,7 +3,6 @@ from pyrogram.errors import UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Initialize Pyrogram Client
-app = Client("my_bot", api_id=config.api_id, api_hash=config.api_hash, bot_token=config.bot_token)
 
 REQUIRED_CHANNELS = []
 JOIN_MANDATORY = False
