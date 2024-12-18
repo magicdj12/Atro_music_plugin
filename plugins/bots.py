@@ -54,13 +54,19 @@ async def show_datetime(client, message):
         afghanistan_formatted_time = afghanistan_time.strftime("%I:%M %p")
 
         # متن خروجی
-        text = f"""ساعت و تاریخ:
+        text = f"""
+🌟 اطلاعات ساعت و تاریخ 🌟
 
-• ساعت ایران: {iran_formatted_time}
-• ساعت افغانستان: {afghanistan_formatted_time}
-• تاریخ امروز (شمسی): {jalali_date}
-• تاریخ میلادی: {gregorian_date}
-"""
+🕰 ساعت‌ها:
+   🇮🇷 ایران: {iran_formatted_time}
+   🇦🇫 افغانستان: {afghanistan_formatted_time}
+
+📅 تاریخ‌ها:
+   🌞 شمسی: {jalali_date}
+   🌍 میلادی: {gregorian_date}
+
+✨ یک روز فوق‌العاده برای شما! ✨
+        """
 
         # ارسال پیام
         await app.send_message(message.chat.id, text)
