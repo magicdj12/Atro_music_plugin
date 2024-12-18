@@ -58,11 +58,11 @@ async def show_datetime(client, message):
 🌟 اطلاعات ساعت و تاریخ 🌟
 
 🕰 ساعت‌ها:
-   🇮🇷 ایران: {iran_formatted_time}
-   🇦🇫 افغانستان: {afghanistan_formatted_time}
+   🇮🇷 ***ایران***: {iran_formatted_time}
+   🇦🇫 ***افغانستان***: {afghanistan_formatted_time}
 
 📅 تاریخ‌ها:
-   🌞 شمسی: {jalali_date}
+   🌞 ```شمسی```: {jalali_date}
    🌍 میلادی: {gregorian_date}
 
 ✨ یک روز فوق‌العاده برای شما! ✨
