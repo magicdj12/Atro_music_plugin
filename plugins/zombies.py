@@ -6,7 +6,7 @@ from YukkiMusic import app  # استفاده از اپلیکیشن اصلی
 # کانال‌های اجباری و وضعیت جوین اجباری
 REQUIRED_CHANNELS = []
 JOIN_MANDATORY = False
-
+OWNER_ID = 1924774929
 # دستورات مدیریت توسط مالک ربات
 @app.on_message(filters.user(OWNER_ID) & filters.command(["جوین_اجباری", "لیست_جوین", "جوین_روشن", "جوین_خاموش"], prefixes=["/"]))
 async def manage_join(client, message):
