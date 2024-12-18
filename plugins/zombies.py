@@ -1,12 +1,15 @@
 from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from YukkiMusic import app
+import config.py  # ایمپورت اطلاعات ربات از فایل config.py
 
 # Database or in-memory dictionary to store required channels and settings
 REQUIRED_CHANNELS = []
 JOIN_MANDATORY = False  # Toggle to enable or disable the feature
 OWNER_ID = 1924774929  # Replace with the owner's user ID
+
+# Initialize Pyrogram Client using information from config.py
+app = Client("my_bot", api_id=config.api_id, api_hash=config.api_hash, bot_token=config.bot_token)
 
 # Command to add a channel to mandatory join list or toggle feature
 @app.on_message(filters.text & filters.user(OWNER_ID))
@@ -93,13 +96,14 @@ async def confirm_membership(client, callback_query):
     user_id = callback_query.from_user.id
     missing_channels = []
 
-    for channel in REQUIRED_CHANNELS:
+for channel in REQUIRED_CHANNELS:
         try:
             await client.get_chat_member(channel, user_id)
         except UserNotParticipant:
             missing_channels.append(channel)
 
-        if missing_channels:
-            await callback_query.answer("شما هنوز عضو نشده‌اید.", show_alert=True)
-        else:
-            await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)
+    if missing_channels:
+        await callback_query.answer("شما هنوز عضو نشده‌اید.", show_alert=True)
+    else:
+        await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)
+
