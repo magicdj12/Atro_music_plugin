@@ -1,16 +1,13 @@
 from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from config import API_ID, API_HASH, BOT_TOKEN, OWNER_ID
-
-# تعریف اپلیکیشن
-app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+from config import OWNER_ID
 
 # لیست کانال‌های اجباری و وضعیت جوین اجباری
 REQUIRED_CHANNELS = []  # کانال‌های اجباری
 JOIN_MANDATORY = False  # وضعیت جوین اجباری
-OWNER_ID = [1924774929]
-# دستورات مدیریت جوین اجباری توسط مالک ربات (فقط در پیوی)
+
+# دستورات مدیریت جوین اجباری فقط در پیوی
 @app.on_message(filters.private & filters.user(OWNER_ID))
 async def manage_mandatory_join(client, message):
     global REQUIRED_CHANNELS, JOIN_MANDATORY
@@ -53,11 +50,11 @@ async def manage_mandatory_join(client, message):
         JOIN_MANDATORY = False
         await message.reply("جوین اجباری غیرفعال شد.")
 
-# بررسی عضویت کاربران (فقط در پیوی)
-@app.on_message(filters.private)
+# بررسی عضویت کاربران فقط در پیوی
+@app.on_message(filters.private & filters.command(["start"]))
 async def check_user_membership(client, message):
     if not JOIN_MANDATORY or not REQUIRED_CHANNELS:
-        return  # اگر جوین اجباری غیرفعال باشد، چک نکن
+        return  # اگر جوین اجباری غیرفعال باشد، چک نکنید
 
     user_id = message.from_user.id
     missing_channels = []
@@ -98,4 +95,4 @@ async def confirm_user_membership(client, callback_query):
     if missing_channels:
         await callback_query.answer("شما هنوز عضو نشده‌اید.", show_alert=True)
     else:
-        await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)`    
+        await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)
