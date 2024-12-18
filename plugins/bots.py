@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 import jdatetime  # برای تاریخ شمسی
+from pytz import timezone  # برای تنظیم منطقه زمانی
 from pyrogram import filters
 from YukkiMusic import app
 
@@ -36,16 +37,27 @@ combined_filters = filters.command(["time", "امروز", "تاریخ"], prefixe
 @app.on_message(combined_filters)
 async def show_datetime(client, message):
     try:
-        # اطلاعات تاریخ و ساعت
-        now = datetime.now()
-        jalali_date = gregorian_to_jalali(now)
-        gregorian_date = gregorian_to_persian(now)
-        current_time = now.strftime("%I:%M %p")  # نمایش ساعت به فرمت 12 ساعته
+        # تنظیم منطقه زمانی
+        iran_tz = timezone("Asia/Tehran")
+        afghanistan_tz = timezone("Asia/Kabul")
+
+        # ساعت و تاریخ در هر منطقه
+        iran_time = datetime.now(iran_tz)
+        afghanistan_time = datetime.now(afghanistan_tz)
+
+        # تبدیل تاریخ و زمان
+        jalali_date = gregorian_to_jalali(iran_time)
+        gregorian_date = gregorian_to_persian(iran_time)
+
+        # قالب‌بندی زمان‌ها
+        iran_formatted_time = iran_time.strftime("%I:%M %p")
+        afghanistan_formatted_time = afghanistan_time.strftime("%I:%M %p")
 
         # متن خروجی
         text = f"""ساعت و تاریخ:
 
-• ساعت: {current_time}
+• ساعت ایران: {iran_formatted_time}
+• ساعت افغانستان: {afghanistan_formatted_time}
 • تاریخ امروز (شمسی): {jalali_date}
 • تاریخ میلادی: {gregorian_date}
 """
