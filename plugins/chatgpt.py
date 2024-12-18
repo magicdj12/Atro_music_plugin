@@ -1,47 +1,12 @@
-# from config import BANNED_USERS
-# from pyrogram import filters
-# from pyrogram.enums import ChatAction
-# from TheApi import api
-# from YukkiMusic import app
-# import requests
-# from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
-# from YukkiMusic import app
-
-
-
-# @app.on_message(filters.command(["chatgpt", "ai", "ask"]) & ~BANNED_USERS)
-# async def chatgpt_chat(bot, message):
-#     if len(message.command) < 2 and not message.reply_to_message:
-#         await message.reply_text(
-#             "Example:\n\n`/ai write simple website code using html css, js?`"
-#         )
-#         return
-
-#     if message.reply_to_message and message.reply_to_message.text:
-#         user_input = message.reply_to_message.text
-#     else:
-#         user_input = " ".join(message.command[1:])
-
-#     await bot.send_chat_action(message.chat.id, ChatAction.TYPING)
-#     results = await api.chatgpt(user_input)
-#     await message.reply_text(results)
-
-
-# __MODULE__ = "CʜᴀᴛGᴘᴛ"
-# __HELP__ = """
-# /advice - ɢᴇᴛ ʀᴀɴᴅᴏᴍ ᴀᴅᴠɪᴄᴇ ʙʏ ʙᴏᴛ
-# /ai [ǫᴜᴇʀʏ] - ᴀsᴋ ʏᴏᴜʀ ǫᴜᴇsᴛɪᴏɴ ᴡɪᴛʜ ᴄʜᴀᴛɢᴘᴛ's ᴀɪ
-# /gemini [ǫᴜᴇʀʏ] - ᴀsᴋ ʏᴏᴜʀ ǫᴜᴇsᴛɪᴏɴ ᴡɪᴛʜ ɢᴏᴏɢʟᴇ's ɢᴇᴍɪɴɪ ᴀɪ"""
-
 from config import BANNED_USERS
 from pyrogram import filters
 from pyrogram.enums import ChatAction
-from TheApi import api
 from YukkiMusic import app
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+import openai  # نصب کتابخانه openai ضروری است: pip install openai
 
-# بررسی کاربر ممنوعه
-BANNED_USERS = filters.user([])  # لیست کاربران ممنوعه را اینجا اضافه کنید.
+# کلید API از OpenAI
+OPENAI_API_KEY = ""
+openai.api_key = OPENAI_API_KEY
 
 @app.on_message(filters.command(["chatgpt", "ai", "ask"]) & ~BANNED_USERS)
 async def chatgpt_chat(bot, message):
@@ -62,19 +27,21 @@ async def chatgpt_chat(bot, message):
     await bot.send_chat_action(message.chat.id, ChatAction.TYPING)
 
     try:
-        # فراخوانی ChatGPT API
-        results = await api.chatgpt(user_input)
-        if results:
-            await message.reply_text(results)
-        else:
-            await message.reply_text("No response received from ChatGPT.")
+        # ارسال درخواست به OpenAI API
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # یا gpt-4 برای استفاده از مدل جدیدتر
+            messages=[{"role": "user", "content": user_input}],
+        )
+        # گرفتن پاسخ از ChatGPT
+        reply = response.choices[0].message["content"]
+        await message.reply_text(reply)
     except Exception as e:
         await message.reply_text(f"An error occurred: {str(e)}")
 
 
-# MODULE = "CʜᴀᴛGᴘᴛ"
-# HELP = """
-# /advice - ɢᴇᴛ ʀᴀɴᴅᴏᴍ ᴀᴅᴠɪᴄᴇ ʙʏ ʙᴏᴛ
-# /ai [ǫᴜᴇʀʏ] - ᴀsᴋ ʏᴏᴜʀ ǫᴜᴇsᴛɪᴏɴ ᴡɪᴛʜ ᴄʜᴀᴛɢᴘᴛ's ᴀɪ
-# /gemini [ǫᴜᴇʀʏ] - ᴀsᴋ ʏᴏᴜʀ ǫᴜᴇsᴛɪᴏɴ ᴡɪᴛʜ ɢᴏᴏɢʟᴇ's ɢᴇᴍɪɴɪ ᴀɪ
-# """
+MODULE = "CʜᴀᴛGᴘᴛ"
+HELP = """
+/advice - ɢᴇᴛ ʀᴀɴᴅᴏᴍ ᴀᴅᴠɪᴄᴇ ʙʏ ʙᴏᴛ
+/ai [ǫᴜᴇʀʏ] - ᴀsᴋ ʏᴏᴜʀ ǫᴜᴇsᴛɪᴏɴ ᴡɪᴛʜ ᴄʜᴀᴛɢᴘᴛ's ᴀɪ
+/gemini [ǫᴜᴇʀʏ] - ᴀsᴋ ʏᴏᴜʀ ǫᴜᴇsᴛɪᴏɴ ᴡɪᴛʜ ɢᴏᴏɢʟᴇ's ɢᴇᴍɪɴɪ ᴀɪ
+"""
