@@ -113,9 +113,6 @@ async def check_join_status(client, message: Message):
             await message.reply("عضویت شما تایید شد. هم اکنون می‌توانید از ربات استفاده کنید.")
         else:
             await message.reply("شما هنوز عضو کانال‌های اجباری نشده‌اید.")
-    else:
-        await message.reply("حالت جوین اجباری غیرفعال است و نیازی به عضویت در کانال‌ها نیست.")
+        else:
+            await message.reply("حالت جوین اجباری غیرفعال است و نیازی به عضویت در کانال‌ها نیست.")
 
-# اجرای ربات
-if name == "main":
-    app.run()
