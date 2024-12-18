@@ -1,3 +1,4 @@
+import random
 from pyrogram import filters
 from YukkiMusic import app  # وارد کردن app از YukkiMusic
 
