@@ -1,4 +1,3 @@
-MohammaD, [12/18/2024 5:58 AM]
 import os
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
@@ -93,7 +92,6 @@ async def disable_join(client, message: Message):
     join_active = False
     await message.reply("حالت جوین اجباری غیرفعال شد. کاربران می‌توانند بدون عضویت در کانال‌ها از ربات استفاده کنند.")
 
-MohammaD, [12/18/2024 5:58 AM]
 # دستور برای بررسی عضویت کاربر در کانال‌های جوین اجباری
 @app.on_message(filters.text & filters.regex("عضو شدم"))
 async def check_join_status(client, message: Message):
