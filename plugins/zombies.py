@@ -102,8 +102,8 @@ for channel in REQUIRED_CHANNELS:
         except UserNotParticipant:
             missing_channels.append(channel)
 
-    if missing_channels:
-        await callback_query.answer("شما هنوز عضو نشده‌اید.", show_alert=True)
-    else:
-        await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)
+        if missing_channels:
+            await callback_query.answer("شما هنوز عضو نشده‌اید.", show_alert=True)
+        else:
+            await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)
 
