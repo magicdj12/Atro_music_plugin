@@ -1,16 +1,16 @@
 import random
 from pyrogram import filters
-from YukkiMusic import app  # وارد کردن app از YukkiMusic
+from YukkiMusic import app
 
 # تعریف تابع برای فرمان "love"
 @app.on_message(filters.command(["love", "کراشم", "عشق"], prefixes=["", "/"]))
-def love_command(client, message):
+async def love_command(client, message):  # افزودن async برای پشتیبانی از همزمانی
     args = message.text.split()[1:]  # حذف دستور و دریافت نام‌ها
     if len(args) >= 2:
         name1 = args[0].strip()
         name2 = args[1].strip()
 
-        love_percentage = random.randint(10, 100)
+        love_percentage = random.randint(10, 100)  # استفاده از random برای تولید عدد تصادفی
         love_message = get_random_message(love_percentage)
 
         # طراحی پاسخ
@@ -23,7 +23,7 @@ def love_command(client, message):
     else:
         response = "لطفاً بعد از دستور /love دو نام وارد کنید."
 
-    client.send_message(chat_id=message.chat.id, text=response)
+    await client.send_message(chat_id=message.chat.id, text=response)  # استفاده از await
 
 def get_random_message(love_percentage):
     if love_percentage <= 30:
