@@ -24,15 +24,10 @@ required_channels = []
 # حالت جوین اجباری
 join_active = False
 
-# دستور تست برای چک کردن پاسخ ربات
-@app.on_message(filters.text & filters.command("test"))
-async def test_handler(client, message: Message):
-    await message.reply("دستور دریافت شد!")
-
 # دستور برای اضافه کردن کانال به لیست جوین اجباری
-@app.on_message(filters.text & filters.command("جوین اجباری") & filters.user(OWNER_ID))
+@app.on_message(filters.text & filters.user(OWNER_ID) & filters.regex("^جوین اجباری$"))
 async def add_join_channel(client, message: Message):
-    await message.reply("لطفاً لینک یا آیدی عددی کانال مورد نظر را ارسال کنید.")
+    await message.reply("لطفا لینک یا آیدی عددی کانال مورد نظر را ارسال کنید.")
 
 # پردازش لینک یا آیدی کانال که توسط صاحب ربات ارسال می‌شود
 @app.on_message(filters.text & filters.user(OWNER_ID) & filters.regex("^(https?://|[0-9]+)$"))
@@ -54,9 +49,9 @@ async def process_join_channel(client, message: Message):
         await message.reply("این کانال قبلاً به لیست اضافه شده است.")
 
 # دستور برای حذف کانال از لیست جوین اجباری
-@app.on_message(filters.text & filters.command("حذف جوین اجباری") & filters.user(OWNER_ID))
+@app.on_message(filters.text & filters.user(OWNER_ID) & filters.regex("^حذف جوین اجباری$"))
 async def remove_join_channel(client, message: Message):
-    await message.reply("لطفاً لینک یا آیدی عددی کانال مورد نظر که می‌خواهید حذف کنید را ارسال کنید.")
+    await message.reply("لطفا لینک یا آیدی عددی کانال مورد نظر که می‌خواهید حذف کنید را ارسال کنید.")
 
 # پردازش حذف کانال از لیست جوین اجباری
 @app.on_message(filters.text & filters.user(OWNER_ID) & filters.regex("^(https?://|[0-9]+)$"))
@@ -70,7 +65,7 @@ async def process_remove_channel(client, message: Message):
         await message.reply("این کانال در لیست جوین اجباری وجود ندارد.")
 
 # دستور برای نمایش لیست کانال‌های جوین اجباری
-@app.on_message(filters.text & filters.command("لیست جوین اجباری") & filters.user(OWNER_ID))
+@app.on_message(filters.text & filters.user(OWNER_ID) & filters.regex("^لیست جوین اجباری$"))
 async def list_join_channels(client, message: Message):
     if required_channels:
         channels_list = "\n".join(required_channels)
@@ -79,14 +74,14 @@ async def list_join_channels(client, message: Message):
         await message.reply("هیچ کانال جوین اجباری ثبت نشده است.")
 
 # دستور برای فعال کردن جوین اجباری
-@app.on_message(filters.text & filters.command("جوین فعال") & filters.user(OWNER_ID))
+@app.on_message(filters.text & filters.user(OWNER_ID) & filters.regex("^جوین فعال$"))
 async def enable_join(client, message: Message):
     global join_active
     join_active = True
     await message.reply("حالت جوین اجباری فعال شد. کاربران باید عضو کانال‌های اجباری شوند تا از ربات استفاده کنند.")
 
 # دستور برای غیرفعال کردن جوین اجباری
-@app.on_message(filters.text & filters.command("جوین غیرفعال") & filters.user(OWNER_ID))
+@app.on_message(filters.text & filters.user(OWNER_ID) & filters.regex("^جوین غیرفعال$"))
 async def disable_join(client, message: Message):
     global join_active
     join_active = False
@@ -113,4 +108,3 @@ async def check_join_status(client, message: Message):
             await message.reply("عضویت شما تایید شد. هم اکنون می‌توانید از ربات استفاده کنید.")
         else:
             await message.reply("شما هنوز عضو کانال‌های اجباری نشده‌اید.")
-
