@@ -1,6 +1,6 @@
 from pyrogram import filters
 from pyrogram.errors import UserNotParticipant
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from YukkiMusic import app
 
 # متغیرهای اصلی
@@ -10,44 +10,37 @@ JOIN_MANDATORY = False  # وضعیت فعال یا غیرفعال بودن جو�
 # متغیر موقت برای ذخیره مراحل اضافه کردن یا حذف کردن کانال
 TEMP_STATE = {}
 
+# لیست کاربران مجاز
+SUDOERS = [1924774929]  # شناسه عددی مالک یا مدیران ربات
+
 
 @app.on_message(filters.user(SUDOERS) & filters.command(["جوین_اجباری", "حذف_جوین", "لیست_جوین", "جوین_روشن", "جوین_خاموش"]))
 async def manage_join(client, message):
     global REQUIRED_CHANNELS, JOIN_MANDATORY, TEMP_STATE
     command = message.command
 
-    # افزودن کانال
     if command[0] == "جوین_اجباری":
         await message.reply("لطفاً لینک یا آیدی عددی کانال را ارسال کنید:")
         TEMP_STATE[message.from_user.id] = "add"
-        return
 
-    # حذف کانال
     elif command[0] == "حذف_جوین":
         await message.reply("لطفاً لینک یا آیدی کانالی که می‌خواهید حذف کنید را ارسال کنید:")
         TEMP_STATE[message.from_user.id] = "remove"
-        return
 
-    # نمایش لیست کانال‌ها
     elif command[0] == "لیست_جوین":
         if REQUIRED_CHANNELS:
             channels = "\n".join(REQUIRED_CHANNELS)
             await message.reply(f"لیست کانال‌های اجباری:\n{channels}")
         else:
             await message.reply("هیچ کانالی در لیست جوین اجباری وجود ندارد.")
-        return
 
-    # روشن کردن جوین اجباری
     elif command[0] == "جوین_روشن":
         JOIN_MANDATORY = True
         await message.reply("جوین اجباری روشن شد. کاربران باید عضو کانال‌های اجباری شوند.")
-        return
 
-    # خاموش کردن جوین اجباری
     elif command[0] == "جوین_خاموش":
         JOIN_MANDATORY = False
         await message.reply("جوین اجباری خاموش شد. کاربران نیازی به عضویت در کانال‌ها ندارند.")
-        return
 
 
 @app.on_message(filters.user(SUDOERS) & filters.text)
@@ -55,12 +48,9 @@ async def handle_channel_entry(client, message):
     global TEMP_STATE, REQUIRED_CHANNELS
 
     user_id = message.from_user.id
-
-    # بررسی اینکه آیا کاربر در حال وارد کردن اطلاعات کانال است
     if user_id not in TEMP_STATE:
         return
 
-    # اضافه کردن کانال
     if TEMP_STATE[user_id] == "add":
         channel = message.text.strip()
         if channel not in REQUIRED_CHANNELS:
@@ -69,9 +59,7 @@ async def handle_channel_entry(client, message):
         else:
             await message.reply(f"کانال {channel} قبلاً اضافه شده است.")
         TEMP_STATE.pop(user_id)
-        return
 
-    # حذف کانال
     elif TEMP_STATE[user_id] == "remove":
         channel = message.text.strip()
         if channel in REQUIRED_CHANNELS:
@@ -80,7 +68,6 @@ async def handle_channel_entry(client, message):
         else:
             await message.reply(f"کانال {channel} در لیست وجود ندارد.")
         TEMP_STATE.pop(user_id)
-        return
 
 
 @app.on_message(filters.private)
@@ -112,7 +99,6 @@ async def check_user_membership(client, message):
             "برای ادامه استفاده از ربات، لطفاً ابتدا در کانال‌های زیر عضو شوید:",
             reply_markup=reply_markup
         )
-        return
 
 
 @app.on_callback_query(filters.regex("check_membership"))
@@ -122,13 +108,13 @@ async def confirm_membership(client, callback_query):
     user_id = callback_query.from_user.id
     missing_channels = []
 
-for channel in REQUIRED_CHANNELS:
+    for channel in REQUIRED_CHANNELS:
         try:
             await client.get_chat_member(channel, user_id)
         except UserNotParticipant:
             missing_channels.append(channel)
 
-    if missing_channels:
+if missing_channels:
         await callback_query.answer("شما هنوز عضو تمام کانال‌های الزامی نشده‌اید.", show_alert=True)
     else:
         await callback_query.answer("عضویت شما تأیید شد! حالا می‌توانید از ربات استفاده کنید.", show_alert=True)
