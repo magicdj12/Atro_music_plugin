@@ -4,70 +4,70 @@ from YukkiMusic import app
 from utils.permissions import adminsOnly
 
 
-@app.on_message(filters.command("removephoto"))
+@app.on_message(filters.command(["removephoto","حذف پروف"]))
 @adminsOnly("can_change_info")
 async def deletechatphoto(_, message):
 
     chat_id = message.chat.id
     user_id = message.from_user.id
-    msg = await message.reply_text("**ᴘʀᴏᴄᴇssɪɴɢ....**")
+    msg = await message.reply_text("در حال پردازش....")
     admin_check = await app.get_chat_member(chat_id, user_id)
     if message.chat.type == enums.ChatType.PRIVATE:
-        await msg.edit("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋ ᴏɴ ɢʀᴏᴜᴘs !**")
+        await msg.edit("این دستور فقط در گروه‌ها کار می‌کند!")
     try:
         if admin_check.privileges.can_change_info:
             await app.delete_chat_photo(chat_id)
             await msg.edit(
-                "**ɢʀᴏᴜᴘs  ᴘʀᴏғɪʟᴇ ᴘʜᴏᴛᴏ ʀᴇᴍᴏᴠᴇᴅ  !\nʙʏ** {}".format(
+                "عکس پروفایل گروه حذف شد!\nتوسط {}".format(
                     message.from_user.mention
                 )
             )
     except BaseException:
         await msg.edit(
-            "**ᴛʜᴇ ᴜsᴇʀ ᴍᴏsᴛ ɴᴇᴇᴅ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ʀᴇᴍᴏᴠᴇ ɢʀᴏᴜᴘ ᴘʜᴏᴛᴏ !**"
+            "کاربر باید حقوق تغییر اطلاعات مدیر را داشته باشد تا بتواند عکس گروه را حذف کند!"
         )
 
 
-@app.on_message(filters.command("setphoto"))
+@app.on_message(filters.command(["setphoto","تنظیم پروف"]))
 @adminsOnly("can_change_info")
 async def setchatphoto(_, message):
     reply = message.reply_to_message
     chat_id = message.chat.id
     user_id = message.from_user.id
-    msg = await message.reply_text("ᴘʀᴏᴄᴇssɪɴɢ...")
+    msg = await message.reply_text("در حال پردازش...")
     admin_check = await app.get_chat_member(chat_id, user_id)
     if message.chat.type == enums.ChatType.PRIVATE:
-        await msg.edit("`ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋ ᴏɴ ɢʀᴏᴜᴘs !`")
+        await msg.edit("این دستور فقط در گروه‌ها کار می‌کند!")
     elif not reply:
-        await msg.edit("**ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴘʜᴏᴛᴏ ᴏʀ ᴅᴏᴄᴜᴍᴇɴᴛ.**")
+        await msg.edit("لطفاً به یک عکس یا سند پاسخ دهید.")
     elif reply:
         try:
             if admin_check.privileges.can_change_info:
                 photo = await reply.download()
                 await message.chat.set_photo(photo=photo)
                 await msg.edit_text(
-                    "**ɴᴇᴡ ɢʀᴏᴜᴘ ᴘʀᴏғɪʟᴇ ᴘʜᴏᴛᴏ ᴄʜᴀɴɢᴇᴅ !\nʙʏ** {}".format(
+                    "عکس پروفایل گروه تغییر یافت!\nتوسط {}".format(
                         message.from_user.mention
                     )
                 )
             else:
-                await msg.edit("**sᴏᴍᴇᴛʜɪɴɢ ᴡʀᴏɴɢ ʜᴀᴘᴘᴇɴᴇᴅ ᴛʀʏ ᴀɴᴏᴛʜᴇʀ ᴘʜᴏᴛᴏ !**")
+                await msg.edit("چیزی اشتباه پیش آمده، لطفاً عکس دیگری امتحان کنید!")
 
         except BaseException:
             await msg.edit(
-                "**ᴛʜᴇ ᴜsᴇʀ ᴍᴏsᴛ ɴᴇᴇᴅ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴘʜᴏᴛᴏ !**"
+                "کاربر باید حقوق تغییر اطلاعات مدیر را داشته باشد تا بتواند عکس گروه را تغییر دهد!"
             )
 
 
-@app.on_message(filters.command("settitle"))
+@app.on_message(filters.command(["settitle","تنظیم نام"]))
 @adminsOnly("can_change_info")
 async def setgrouptitle(_, message):
     reply = message.reply_to_message
     chat_id = message.chat.id
     user_id = message.from_user.id
-    msg = await message.reply_text("ᴘʀᴏᴄᴇssɪɴɢ...")
+    msg = await message.reply_text("در حال پردازش...")
     if message.chat.type == enums.ChatType.PRIVATE:
-        await msg.edit("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋ ᴏɴ ɢʀᴏᴜᴘs !**")
+        await msg.edit("این دستور فقط در گروه‌ها کار می‌کند!")
     elif reply:
         try:
             title = message.reply_to_message.text
@@ -75,13 +75,13 @@ async def setgrouptitle(_, message):
             if admin_check.privileges.can_change_info:
                 await message.chat.set_title(title)
                 await msg.edit(
-                    "**ɴᴇᴡ ɢʀᴏᴜᴘ ɴᴀᴍᴇ ᴄʜᴀɴɢᴇᴅ !\nʙʏ** {}".format(
+                    "نام جدید گروه تغییر یافت!\nتوسط {}".format(
                         message.from_user.mention
                     )
                 )
         except AttributeError:
             await msg.edit(
-                "ᴛʜᴇ ᴜsᴇʀ ᴍᴏsᴛ ɴᴇᴇᴅ **ᴄʜᴀɴɢᴇ ɪɴғᴏ** ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴛɪᴛʟᴇ !"
+                "کاربر باید حقوق تغییر اطلاعات مدیر را داشته باشد تا بتواند نام گروه را تغییر دهد!"
             )
     elif len(message.command) > 1:
         try:
@@ -90,30 +90,29 @@ async def setgrouptitle(_, message):
             if admin_check.privileges.can_change_info:
                 await message.chat.set_title(title)
                 await msg.edit(
-                    "**ɴᴇᴡ ɢʀᴏᴜᴘ ɴᴀᴍᴇ ᴄʜᴀɴɢᴇᴅ !\nʙʏ** {}".format(
+                    "نام جدید گروه تغییر یافت!\nتوسط {}".format(
                         message.from_user.mention
                     )
                 )
         except AttributeError:
             await msg.edit(
-                "**ᴛʜᴇ ᴜsᴇʀ ᴍᴏsᴛ ɴᴇᴇᴅ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴛɪᴛʟᴇ !**"
+                "کاربر باید حقوق تغییر اطلاعات مدیر را داشته باشد تا بتواند نام گروه را تغییر دهد!"
             )
 
     else:
         await msg.edit(
-            "**ʏᴏᴜ ɴᴇᴇᴅ ʀᴇᴘʟʏ ᴛᴏ ᴛᴇxᴛ ᴏʀ ɢɪᴠᴇ sᴏᴍᴇ ᴛᴇxᴛ ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴛɪᴛʟᴇ **"
+            "شما باید به یک متن پاسخ دهید یا متنی برای تغییر نام گروه وارد کنید."
         )
 
-
-@app.on_message(filters.command(["setdiscription", "setdesc"]))
+@app.on_message(filters.command(["setdiscription", "setdesc","تنظیم بیو"]))
 @adminsOnly("can_change_info")
 async def setg_discription(_, message):
     reply = message.reply_to_message
     chat_id = message.chat.id
     user_id = message.from_user.id
-    msg = await message.reply_text("**ᴘʀᴏᴄᴇssɪɴɢ...**")
+    msg = await message.reply_text("در حال پردازش...")
     if message.chat.type == enums.ChatType.PRIVATE:
-        await msg.edit("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴ ɢʀᴏᴜᴘs!**")
+        await msg.edit("این دستور فقط در گروه‌ها کار می‌کند!")
     elif reply:
         try:
             discription = message.reply_to_message.text
@@ -121,13 +120,13 @@ async def setg_discription(_, message):
             if admin_check.privileges.can_change_info:
                 await message.chat.set_description(discription)
                 await msg.edit(
-                    "**ɴᴇᴡ ᴅɪsᴄʀɪᴘᴛɪᴏɴ ᴏғ ɢʀᴏᴜᴘ ᴄʜᴀɴɢᴇᴅ!**\nʙʏ {}".format(
+                    "توضیحات جدید گروه تغییر یافت!\nتوسط {}".format(
                         message.from_user.mention
                     )
                 )
         except AttributeError:
             await msg.edit(
-                "**ᴛʜᴇ ᴜsᴇʀ ᴍᴜsᴛ ʜᴀᴠᴇ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴅɪsᴄʀɪᴘᴛɪᴏɴ!**"
+                "کاربر باید حقوق تغییر اطلاعات مدیر را داشته باشد تا بتواند توضیحات گروه را تغییر دهد!"
             )
     elif len(message.command) > 1:
         try:
@@ -136,15 +135,15 @@ async def setg_discription(_, message):
             if admin_check.privileges.can_change_info:
                 await message.chat.set_description(discription)
                 await msg.edit(
-                    "**ɴᴇᴡ ᴅɪsᴄʀɪᴘᴛɪᴏɴ ᴏғ ɢʀᴏᴜᴘ ᴄʜᴀɴɢᴇᴅ!**\nʙʏ {}".format(
+                    "توضیحات جدید گروه تغییر یافت!\nتوسط {}".format(
                         message.from_user.mention
                     )
                 )
         except AttributeError:
             await msg.edit(
-                "**ᴛʜᴇ ᴜsᴇʀ ᴍᴜsᴛ ʜᴀᴠᴇ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴅɪsᴄʀɪᴘᴛɪᴏɴ!**"
+                "کاربر باید حقوق تغییر اطلاعات مدیر را داشته باشد تا بتواند توضیحات گروه را تغییر دهد!"
             )
     else:
         await msg.edit(
-            "**ʏᴏᴜ ɴᴇᴇᴅ ᴛᴏ ʀᴇᴘʟʏ ᴛᴏ ᴛᴇxᴛ ᴏʀ ɢɪᴠᴇ sᴏᴍᴇ ᴛᴇxᴛ ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴅɪsᴄʀɪᴘᴛᴏɴ!**"
+            "شما باید به یک متن پاسخ دهید یا متنی برای تغییر توضیحات گروه وارد کنید."
         )
