@@ -74,7 +74,7 @@ girl_keyboard = InlineKeyboardMarkup(
     ]
 )
 
-@app.on_message(filters.command(["پروف دختر"]) & ~BANNED_USERS)
+@app.on_message(filters.command(["پروف دختر"]))
 async def girl_profile(c, m: Message):
     # انتخاب تصادفی یک عکس از لیست
     girl_url = random.choice(girl_photos)
