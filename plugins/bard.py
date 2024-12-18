@@ -1,39 +1,37 @@
 import random
-
-from pyrogram import filters
-from YukkiMusic import app
+from pyrogram import Client, filters
 
 
 def get_random_message(love_percentage):
     if love_percentage <= 30:
         return random.choice(
             [
-                "Love is in the air but needs a little spark.",
-                "A good start but there's room to grow.",
-                "It's just the beginning of something beautiful.",
+                "عشق در هوای شما موج می‌زند، اما هنوز نیاز به جرقه‌ای دارد.",
+                "شروع خوبی است، اما راه زیادی برای رشد دارید.",
+                "این تازه آغاز یک داستان زیباست.",
             ]
         )
     elif love_percentage <= 70:
         return random.choice(
             [
-                "A strong connection is there. Keep nurturing it.",
-                "You've got a good chance. Work on it.",
-                "Love is blossoming, keep going.",
+                "اتصال قوی‌ای بین شما وجود دارد. آن را پرورش دهید.",
+                "شانس خوبی دارید، روی آن کار کنید.",
+                "عشق میان شما در حال شکوفه زدن است، ادامه دهید.",
             ]
         )
     else:
         return random.choice(
             [
-                "Wow! It's a match made in heaven!",
-                "Perfect match! Cherish this bond.",
-                "Destined to be together. Congratulations!",
+                "وای! این یک پیوند آسمانی است!",
+                "عشق کامل! این پیوند را گرامی بدارید.",
+                "سرنوشت شما را برای هم ساخته است. تبریک می‌گویم!",
             ]
         )
 
 
 @app.on_message(filters.command("love", prefixes="/"))
 def love_command(client, message):
-    command, *args = message.text.split(" ")
+    args = message.text.split()[1:]  # حذف دستور و دریافت نام‌ها
     if len(args) >= 2:
         name1 = args[0].strip()
         name2 = args[1].strip()
@@ -41,15 +39,15 @@ def love_command(client, message):
         love_percentage = random.randint(10, 100)
         love_message = get_random_message(love_percentage)
 
-        response = f"{name1}💕 + {name2}💕 = {love_percentage}%\n\n{love_message}"
-    else:
-        response = "Please enter two names after /love command."
-    app.send_message(message.chat.id, response)
+        # طراحی پاسخ
+        response = f"""
+💖  {name1} 💕 {name2} 💖
+📖 عشق شما: {love_percentage}%
 
-
-__MODULE__ = "Lᴏᴠᴇ"
-__HELP__ = """
-**ʟᴏᴠᴇ ᴄᴀʟᴄᴜʟᴀᴛᴏʀ:**
-
-• `/love [name1] [name2]`: Cᴀʟᴄᴜʟᴀᴛᴇs ᴛʜᴇ ᴘᴇʀᴄᴇɴᴛᴀɢᴇ ᴏғ ʟᴏᴠᴇ ʙᴇᴛᴡᴇᴇɴ ᴛᴡᴏ ᴘᴇᴏᴘʟᴇ.
+📝 {love_message}
 """
+    else:
+        response = "لطفاً بعد از دستور /love دو نام وارد کنید."
+
+    client.send_message(chat_id=message.chat.id, text=response)
+
