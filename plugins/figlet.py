@@ -1,107 +1,142 @@
 import asyncio
 from pyrogram import Client, filters
-from pyrogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from pyrogram.errors import FloodWait
 import time
-from datetime import datetime, timedelta
 
 from YukkiMusic import app
 
-# ذخیره پیام‌های مخفی و اطلاعات مرتبط با آن‌ها
+# ذخیره پیام‌ها و اطلاعات آنها
 hidden_messages = {}
-expiration_time = 60 * 60  # مدت زمان انقضا (یک ساعت)
 
 @app.on_message(filters.command("نجوا") & filters.group)  # فقط در گروه‌ها اجرا شود
 async def secret_message(bot, message: Message):
     try:
-        # استخراج متن پیام و id یا username کاربر
+        # استخراج اطلاعات
         text = message.text.split(" ", 1)[1]
         user_info = text.split(" ", 1)
         user_id = int(user_info[0]) if user_info[0].isdigit() else user_info[0]
         message_text = user_info[1] if len(user_info) > 1 else "لطفا پیامی برای ارسال وارد کنید."
 
-        # ارسال پیام مخفی به کاربر
+        # ارسال پیام به گروه و ذخیره اطلاعات
         user = await bot.get_users(user_id)
-        reply_text = f"پیام مخفی ارسال شد به {user.first_name}:\n{message_text}"
-
-        # ذخیره پیام در hidden_messages به همراه زمان ارسال
         hidden_messages[user_id] = {
             "message": message_text,
             "sender": message.from_user.id,
             "timestamp": time.time()
         }
 
-        # ایجاد کلیدهای شیشه‌ای برای نمایش، حذف، و پاسخ
+        # دکمه‌ها برای مدیریت پیام
         keyboard = InlineKeyboardMarkup(
             [
-                [InlineKeyboardButton("نمایش پیام", callback_data=f"show_{user_id}")],
+                [InlineKeyboardButton("ویرایش پیام", callback_data=f"edit_{user_id}")],
                 [InlineKeyboardButton("حذف پیام", callback_data=f"delete_{user_id}")],
-                [InlineKeyboardButton("پاسخ پیام", callback_data=f"reply_{user_id}")],
-                [InlineKeyboardButton("ویرایش پیام", callback_data=f"edit_{user_id}")],  # ویرایش پیام
+                [InlineKeyboardButton("ارسال به پیوی", callback_data=f"send_private_{user_id}")],
+                [InlineKeyboardButton("ارسال در گروه", callback_data=f"send_group_{user_id}")],
+                [InlineKeyboardButton("ارسال به صورت ناشناس", callback_data=f"send_anonymous_{user_id}")],
+                [InlineKeyboardButton("ارسال از طرف من", callback_data=f"send_from_me_{user_id}")],
+                [InlineKeyboardButton("بستن", callback_data="close")]
             ]
         )
 
         # ارسال پیام به گروه
-        await message.reply_text(
-            f"پیام مخفی به {user.first_name} ارسال شد.",
-            reply_markup=keyboard
-        )
+        await message.reply_text(f"پیام مخفی به {user.first_name} ارسال شد.", reply_markup=keyboard)
 
-        # ارسال اعلان برای دریافت‌کننده
-        await bot.send_message(user_id, f"شما یک پیام مخفی از {message.from_user.first_name} دارید. برای نمایش یا حذف آن از دکمه‌ها استفاده کنید.")
+        # ارسال اعلان به دریافت‌کننده
+        await bot.send_message(user_id, f"شما یک پیام مخفی از {message.from_user.first_name} دارید. برای مدیریت آن از دکمه‌ها استفاده کنید.")
 
     except Exception as e:
         await message.reply_text(f"خطا در ارسال پیام: {str(e)}")
 
-@app.on_callback_query(filters.regex(r"show_"))
-async def show_message(Client, query: CallbackQuery):
-    user_id = int(query.data.split("_")[1])
+@app.on_callback_query(filters.regex(r"send_private_"))
+async def send_private(Client, query: CallbackQuery):
+    user_id = int(query.data.split("_")[2])
+
     if user_id in hidden_messages:
-        # ارسال پیام مخفی به کاربر
         hidden_message = hidden_messages[user_id]["message"]
         sender_id = hidden_messages[user_id]["sender"]
         sender = await query.bot.get_users(sender_id)
 
-        # بررسی زمان انقضا پیام
-        if time.time() - hidden_messages[user_id]["timestamp"] > expiration_time:
-            del hidden_messages[user_id]
-            await query.answer("این پیام منقضی شده است.", show_alert=True)
-            return
+        # بررسی استارت ربات توسط کاربر
+        try:
+            await query.bot.get_chat(user_id)  # چک کردن اگر کاربر ربات را استارت کرده باشد
+        except Exception:
+            # اگر کاربر ربات را استارت نکرده باشد
+            await query.bot.send_message(sender_id, f"کاربر {sender.first_name} هنوز ربات را استارت نکرده! 😂")
 
-        await query.message.edit_text(
-            f"پیام مخفی از {sender.first_name}:\n<pre>{hidden_message}</pre>",
-            reply_markup=query.message.reply_markup
+        # ارسال پیام مخفی در پیوی
+        await query.bot.send_message(user_id, f"پیام مخفی از {sender.first_name}:\n{hidden_message}")
+
+        # دکمه‌ها برای کاربر ارسال‌کننده
+        keyboard = InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("پاسخ به پیام", callback_data=f"reply_{user_id}")],
+                [InlineKeyboardButton("بستن", callback_data="close")]
+            ]
         )
-    else:
-        await query.answer("هیچ پیامی برای این کاربر پیدا نشد.", show_alert=True)
+        await query.message.edit_text("پیام مخفی به پیوی ارسال شد.", reply_markup=keyboard)
 
-@app.on_callback_query(filters.regex(r"delete_"))
-async def delete_message(Client, query: CallbackQuery):
-    user_id = int(query.data.split("_")[1])
+@app.on_callback_query(filters.regex(r"send_group_"))
+async def send_group(Client, query: CallbackQuery):
+    user_id = int(query.data.split("_")[2])
+
     if user_id in hidden_messages:
-        # حذف پیام مخفی
-        del hidden_messages[user_id]
-        await query.message.edit_text("پیام مخفی حذف شد.", reply_markup=None)
-    else:
-        await query.answer("هیچ پیامی برای این کاربر پیدا نشد.", show_alert=True)
+        hidden_message = hidden_messages[user_id]["message"]
+        sender_id = hidden_messages[user_id]["sender"]
+        sender = await query.bot.get_users(sender_id)
 
-@app.on_callback_query(filters.regex(r"reply_"))
-async def reply_message(Client, query: CallbackQuery):
-    user_id = int(query.data.split("_")[1])
-    # ارسال پیام ناشناس به کاربر
-    await query.message.edit_text("لطفاً پیامی برای پاسخ ارسال کنید.")
+        # ارسال پیام مخفی به گروه
+        await query.bot.send_message(query.message.chat.id, f"پیام مخفی از {sender.first_name}:\n{hidden_message}")
 
-    @app.on_message(filters.text & filters.private)
-    async def secret_reply(bot, message: Message):
-        if message.text.startswith("/"):
-            return  # ignore commands
-
-# ارسال پیام به کاربر هدف به صورت ناشناس
-        await bot.send_message(
-            user_id,
-            f"پیام ناشناس به شما از {message.from_user.first_name}:\n{message.text}"
+# دکمه‌ها برای کاربر ارسال‌کننده
+        keyboard = InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("پاسخ به پیام", callback_data=f"reply_{user_id}")],
+                [InlineKeyboardButton("بستن", callback_data="close")]
+            ]
         )
-        await message.reply_text("پاسخ ناشناس به کاربر ارسال شد.")
+        await query.message.edit_text("پیام مخفی به گروه ارسال شد.", reply_markup=keyboard)
+
+@app.on_callback_query(filters.regex(r"send_anonymous_"))
+async def send_anonymous(Client, query: CallbackQuery):
+    user_id = int(query.data.split("_")[2])
+
+    if user_id in hidden_messages:
+        hidden_message = hidden_messages[user_id]["message"]
+
+        # ارسال پیام به صورت ناشناس (بدون مشخص شدن ارسال‌کننده)
+        await query.bot.send_message(user_id, f"پیام مخفی:\n{hidden_message}")
+
+        # دکمه‌ها برای کاربر ارسال‌کننده
+        keyboard = InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("پاسخ به پیام", callback_data=f"reply_{user_id}")],
+                [InlineKeyboardButton("بستن", callback_data="close")]
+            ]
+        )
+        await query.message.edit_text("پیام به صورت ناشناس ارسال شد.", reply_markup=keyboard)
+
+@app.on_callback_query(filters.regex(r"send_from_me_"))
+async def send_from_me(Client, query: CallbackQuery):
+    user_id = int(query.data.split("_")[2])
+
+    if user_id in hidden_messages:
+        hidden_message = hidden_messages[user_id]["message"]
+        sender_id = hidden_messages[user_id]["sender"]
+        sender = await query.bot.get_users(sender_id)
+
+        # ارسال پیام از طرف ارسال‌کننده با اطلاعات کاربر
+        message_with_sender_info = f"پیام از {sender.first_name} ({sender.username}) [چت آیدی: {sender_id}]:\n{hidden_message}"
+        await query.bot.send_message(user_id, message_with_sender_info)
+
+        # دکمه‌ها برای کاربر ارسال‌کننده
+        keyboard = InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("پاسخ به پیام", callback_data=f"reply_{user_id}")],
+                [InlineKeyboardButton("بستن", callback_data="close")]
+            ]
+        )
+        await query.message.edit_text("پیام از طرف شما ارسال شد.", reply_markup=keyboard)
 
 @app.on_callback_query(filters.regex(r"edit_"))
 async def edit_message(Client, query: CallbackQuery):
@@ -125,3 +160,37 @@ async def edit_message(Client, query: CallbackQuery):
             await query.message.edit_text("پیام مخفی ویرایش شد.", reply_markup=None)
     else:
         await query.answer("هیچ پیامی برای این کاربر پیدا نشد.", show_alert=True)
+
+@app.on_callback_query(filters.regex(r"delete_"))
+async def delete_message(Client, query: CallbackQuery):
+    user_id = int(query.data.split("_")[1])
+    if user_id in hidden_messages:
+        # حذف پیام مخفی
+        del hidden_messages[user_id]
+        await query.message.edit_text("پیام مخفی حذف شد.", reply_markup=None)
+    else:
+        await query.answer("هیچ پیامی برای این کاربر پیدا نشد.", show_alert=True)
+
+@app.on_callback_query(filters.regex(r"reply_"))
+async def reply_message(Client, query: CallbackQuery):
+    user_id = int(query.data.split("_")[1])
+
+    # ارسال پیام ناشناس به کاربر
+    await query.message.edit_text("لطفاً پیامی برای پاسخ ارسال کنید.")
+
+    @app.on_message(filters.text & filters.private)
+    async def secret_reply(bot, message: Message):
+        if message.text.startswith("/"):
+            return  # ignore commands
+
+# ارسال پیام به کاربر هدف به صورت ناشناس
+        await bot.send_message(
+            user_id,
+            f"پیام ناشناس به شما از {message.from_user.first_name}:\n{message.text}"
+        )
+        await message.reply_text("پاسخ ناشناس به کاربر ارسال شد.")
+        await query.message.edit_text("پیام مخفی ویرایش شد.", reply_markup=None)
+
+@app.on_callback_query(filters.regex(r"close"))
+async def close_message(Client, query: CallbackQuery):
+    await query.message.delete()
