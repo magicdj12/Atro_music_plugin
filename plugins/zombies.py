@@ -77,6 +77,3 @@ async def confirm_membership(client, callback_query):
     missing_channels = await check_user_membership(client, callback_query.from_user.id)
     message = "شما هنوز عضو نشده‌اید." if missing_channels else "شما می‌توانید از ربات استفاده کنید."
     await callback_query.answer(message, show_alert=True)
-
-# Run the bot
-app.run()
