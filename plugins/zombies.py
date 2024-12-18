@@ -100,6 +100,6 @@ async def confirm_membership(client, callback_query):
             missing_channels.append(channel)
 
 if missing_channels:
-    await callback_query.answer("شما هنوز عضو نشده‌اید.", show_alert=True)
-else:
-    await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)
+        await callback_query.answer("شما هنوز عضو نشده‌اید.", show_alert=True)
+    else:
+        await callback_query.answer("شما می‌توانید از ربات استفاده کنید.", show_alert=True)
