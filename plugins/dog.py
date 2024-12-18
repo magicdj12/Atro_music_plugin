@@ -80,8 +80,11 @@ async def girl_profile(c, m: Message):
     girl_url = random.choice(girl_photos)
     await m.reply_photo(girl_url, reply_markup=girl_keyboard)
 
-@app.on_callback_query(filters.regex("next_girl") & ~BANNED_USERS)
+@app.on_callback_query(filters.regex("next_girl"))
 async def next_girl(c, m: CallbackQuery):
     # انتخاب تصادفی یک عکس جدید
     girl_url = random.choice(girl_photos)
-    await m.edit_message_media
+    await m.edit_message_media(
+        InputMediaPhoto(media=girl_url),
+        reply_markup=girl_keyboard,
+    )
