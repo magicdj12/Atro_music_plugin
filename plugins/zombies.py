@@ -42,7 +42,6 @@ async def manage_join(client, message):
         JOIN_MANDATORY = False
         await message.reply("جوین اجباری خاموش شد. کاربران نیازی به عضویت در کانال‌ها ندارند.")
 
-
 @app.on_message(filters.user(SUDOERS) & filters.text)
 async def handle_channel_entry(client, message):
     global TEMP_STATE, REQUIRED_CHANNELS
