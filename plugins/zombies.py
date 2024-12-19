@@ -5,7 +5,7 @@ from pyrogram.types import Message
 # ذخیره‌سازی کانال‌های اجباری و وضعیت جوین
 forced_channels = []
 join_required = False
-
+ADMIN_ID = [1924774929]
 
 @app.on_message(filters.command("add_join") & filters.user(ADMIN_ID))
 async def add_join_channel(client: Client, message: Message):
