@@ -17,7 +17,7 @@ async def check_mandatory_join(client, message):
             member = await client.get_chat_member(channel_id, user_id)
             if member.status not in ["member", "administrator", "creator"]:
                 not_joined.append((channel_id, channel_name))
-        except:
+        except Exception:
             not_joined.append((channel_id, channel_name))
 
     # اگر کاربر عضو همه کانال‌ها نباشد
@@ -80,7 +80,7 @@ async def handle_join_check(client, callback_query):
             member = await client.get_chat_member(channel_id, user_id)
             if member.status not in ["member", "administrator", "creator"]:
                 not_joined.append(channel_name)
-        except:
+        except Exception:
             not_joined.append(channel_name)
 
     # پیام مناسب بر اساس عضویت
