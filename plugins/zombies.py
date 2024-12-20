@@ -39,7 +39,7 @@ async def check_mandatory_join(client, message):
 
 
 # اضافه کردن کانال جدید به لیست جوین اجباری
-@Client.on_message(filters.command("add_channel") & filters.user([OWNER_ID]))  # جایگزین OWNER_ID با شناسه مالک
+@Client.on_message(filters.command("add_channel") & filters.user([OWNER_ID])  # جایگزین OWNER_ID با شناسه مالک
 async def add_channel(client, message):
     if len(message.command) < 3:
         await message.reply("❌ استفاده صحیح: /add_channel <آیدی کانال> <نام کانال>")
@@ -53,7 +53,7 @@ async def add_channel(client, message):
 
 
 # حذف کانال از لیست جوین اجباری
-@Client.on_message(filters.command("remove_channel") & filters.user([OWNER_ID]))
+@Client.on_message(filters.command("remove_channel") & filters.user([OWNER_ID])
 async def remove_channel(client, message):
     if len(message.command) < 2:
         await message.reply("❌ استفاده صحیح: /remove_channel <آیدی کانال>")
