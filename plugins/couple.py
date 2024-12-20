@@ -3,7 +3,7 @@ import random
 from datetime import datetime
 from khayyam import JalaliDatetime
 import pytz
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from pyrogram import filters
 from pyrogram.enums import ChatType, UserStatus
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -15,7 +15,7 @@ love_poems = [
     "بهترین لحظه‌ام، همین حالاست\nکه تو باشی کنار من، جانم.",
     "عشق یعنی نگاه تو، یعنی آرامش وجودم.",
     "چشمانت شعر می‌گوید و من عاشقانه می‌نویسم.",
-    "بی تو من هیچم، با تو همه‌چیزم.",
+    "بی‌تو من هیچم، با تو همه‌چیزم.",
     "تا همیشه با تو خواهم بود، مثل نفس.",
     "زندگی‌ام در نگاهت خلاصه می‌شود.",
     "تو همان شعری که در قلبم حک شده‌ای.",
@@ -52,10 +52,9 @@ def get_date_formats():
     return jalali_date, gregorian_date, time
 
 # 🌹 دستور زوج
-@app.on_message(filters.command(["زوج"]) & ~filters.private)
+@app.on_message(filters.regex(r"^(زوج|زدوج|Zoj|zoj)$") & ~filters.private)
 async def select_couple(_, message):
     chat_id = message.chat.id
-    args = message.text.split()
 
     if message.chat.type == ChatType.PRIVATE:
         return await message.reply_text("❌ این دستور فقط در گروه‌ها فعال است.")
@@ -67,28 +66,29 @@ async def select_couple(_, message):
     jalali_date, gregorian_date, current_time = get_date_formats()
 
     try:
-        if len(args) >= 3:
-            user1_id = int(args[1].replace("@", ""))
-            user2_id = int(args[2].replace("@", ""))
-            custom_text = " ".join(args[3:]) if len(args) > 3 else None
-            user1 = await app.get_users(user1_id)
-            user2 = await app.get_users(user2_id)
+        members = []
+        async for member in app.get_chat_members(chat_id, limit=100):
+            if (
+                not member.user.is_bot
+                and not member.user.is_deleted
+                and member.status in [UserStatus.ONLINE, UserStatus.RECENTLY]
+            ):
+                members.append(member.user)
+
+        if len(members) < 2:
+            return await message.reply_text("❌ کاربران کافی برای انتخاب وجود ندارد.")
+
+        # تلاش برای انتخاب یک دختر و یک پسر
+        females = [m for m in members if "خانم" in (m.first_name or "") or "خانم" in (m.last_name or "")]
+        males = [m for m in members if "آقا" in (m.first_name or "") or "آقا" in (m.last_name or "")]
+
+        if females and males:
+            user1 = random.choice(females)
+            user2 = random.choice(males)
         else:
-            members = []
-            async for member in app.get_chat_members(chat_id, limit=100):
-                if (
-                    not member.user.is_bot
-                    and not member.user.is_deleted
-                    and member.status == UserStatus.ONLINE
-                ):
-                    members.append(member.user)
-
-            if len(members) < 2:
-                return await message.reply_text("❌ کاربران کافی برای انتخاب وجود ندارد.")
-
             user1, user2 = random.sample(members, 2)
-            custom_text = None
 
+        # دانلود عکس کاربران
         try:
             photo1 = await app.download_media(user1.photo.big_file_id, file_name=p1_path)
         except Exception:
@@ -99,8 +99,14 @@ async def select_couple(_, message):
         except Exception:
             photo2 = None
 
+        # ایجاد تصویر پس‌زمینه با نورپردازی
         background = Image.new("RGB", (1000, 800), (30, 30, 50))
         draw = ImageDraw.Draw(background)
+        gradient = Image.new("RGBA", background.size, (255, 0, 0, 0))
+        for y in range(gradient.height):
+            opacity = int(255 * (1 - y / gradient.height))
+            draw.rectangle([(0, y), (gradient.width, y + 1)], fill=(255, 182, 193, opacity))
+        background = Image.alpha_composite(background.convert("RGBA"), gradient).convert("RGB")
 
         if photo1:
             img1 = Image.open(photo1).resize((400, 400)).convert("RGBA")
@@ -118,27 +124,38 @@ async def select_couple(_, message):
             img2.putalpha(mask)
             background.paste(img2, (500, 200), img2)
 
+        # اضافه کردن شعر عاشقانه
+        random_poem = random.choice(love_poems)
         font_path = "arial.ttf"
         try:
             font = ImageFont.truetype(font_path, 40)
         except IOError:
             font = ImageFont.load_default()
 
-        if custom_text:
-            text = custom_text
-        else:
-            random_poem = random.choice(love_poems)
-            text = f"{random_poem}\n\n📅 تاریخ شمسی: {jalali_date}\n📆 تاریخ میلادی: {gregorian_date}\n🕒 ساعت: {current_time}"
-
-        text_position = (50, 650)
-        draw.text(text_position, text, fill="white", font=font)
+        text_position = (150, 650)
+        draw.text(text_position, random_poem, fill="white", font=font)
 
         background.save(result_path)
+
+        # ارسال تصویر همراه با کپشن و کلید شیشه‌ای
         await message.reply_photo(
             photo=result_path,
-            caption=f"💞 زوج امروز:\n👦 {user1.mention} + 👩 {user2.mention}\n✨ با عشق ادامه دهید!",
+            caption=(
+                f"💞 زوج امروز:\n👩 {user1.first_name} + 👦 {user2.first_name}\n\n"
+                f"📅 تاریخ شمسی: {jalali_date}\n"
+                f"📆 تاریخ میلادی: {gregorian_date}\n"
+                f"🕒 ساعت: {current_time}\n\n"
+                f"🌹 شعر عاشقانه:\n{random_poem}"
+            ),
             reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("✨ اضافه کردن من به گروه", url=f"https://t.me/{app.username}?startgroup=true")]]
+                [
+                    [
+                        InlineKeyboardButton(
+                            "✨ منو ببر گروهت",
+                            url=f"https://t.me/{app.username}?startgroup=true",
+                        )
+                    ]
+                ]
             ),
         )
 
