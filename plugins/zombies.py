@@ -1,14 +1,15 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from YukkiMusic import app
-
+from YukkiMusic import app  # فرض بر اینکه این قسمت به درستی وارد شده است
 
 # لیست کانال‌های جوین اجباری
-mandatory_channels = {-1002112347966 , 'hdhdhdhd'}  # {channel_id: "نام کانال"}
+mandatory_channels = {
+    -1002112347966: "hdhdhdhd"  # {channel_id: "نام کانال"}
+}
 OWNER_ID = [1924774929]  # شناسه عددی مالک (عدد)
 
 # بررسی عضویت کاربران
-@Client.on_message(filters.private & ~filters.command(["start", "add_channel", "remove_channel"]))
+@app.on_message(filters.private & ~filters.command(["start", "add_channel", "remove_channel"]))
 async def check_mandatory_join(client, message):
     user_id = message.from_user.id
 
@@ -42,13 +43,13 @@ async def check_mandatory_join(client, message):
 
 
 # اضافه کردن کانال جدید به لیست جوین اجباری
-@Client.on_message(filters.command("add_channel") & filters.user(OWNER_ID))
+@app.on_message(filters.command("add_channel") & filters.user(OWNER_ID))
 async def add_channel(client, message):
     if len(message.command) < 3:
         await message.reply("❌ استفاده صحیح: /add_channel <آیدی کانال> <نام کانال>")
         return
 
-    channel_id = message.command[1]
+    channel_id = int(message.command[1])  # اطمینان از اینکه آیدی به عدد تبدیل می‌شود
     channel_name = message.command[2]
     mandatory_channels[channel_id] = channel_name
 
@@ -56,13 +57,13 @@ async def add_channel(client, message):
 
 
 # حذف کانال از لیست جوین اجباری
-@Client.on_message(filters.command("remove_channel") & filters.user(OWNER_ID))
+@app.on_message(filters.command("remove_channel") & filters.user(OWNER_ID))
 async def remove_channel(client, message):
     if len(message.command) < 2:
         await message.reply("❌ استفاده صحیح: /remove_channel <آیدی کانال>")
         return
 
-    channel_id = message.command[1]
+    channel_id = int(message.command[1])  # اطمینان از اینکه آیدی به عدد تبدیل می‌شود
     if channel_id in mandatory_channels:
         del mandatory_channels[channel_id]
         await message.reply("✅ کانال از لیست جوین اجباری حذف شد.")
@@ -71,7 +72,7 @@ async def remove_channel(client, message):
 
 
 # بررسی عضویت پس از کلیک روی دکمه "تأیید عضویت"
-@Client.on_callback_query(filters.regex("check_join"))
+@app.on_callback_query(filters.regex("check_join"))
 async def handle_join_check(client, callback_query):
     user_id = callback_query.from_user.id
 
