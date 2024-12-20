@@ -1,6 +1,17 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from YukkiMusic import app  # فرض بر اینکه این قسمت به درستی وارد شده است
+from contextlib import suppress
+from string import ascii_lowercase
+from config import BANNED_USERS
+from pyrogram import filters
+from pyrogram.enums import ChatMembersFilter, ChatMemberStatus, ChatType
+from pyrogram.types import
+from YukkiMusic.core.mongo import mongodb
+from YukkiMusic.misc import SUDOERS
+from YukkiMusic.utils.database import save_filter  
+from YukkiMusic.utils.keyboard import ikb
+from utils.permissions import adminsOnly, member_permissions
 
 # لیست کانال‌های جوین اجباری
 mandatory_channels = {
