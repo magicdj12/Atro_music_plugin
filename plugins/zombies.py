@@ -1,143 +1,93 @@
-from YukkiMusic import app
-from os import getenv
-from YukkiMusic.misc import SUDOERS
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# List of forced join channels and join status
-forced_channels = []
-join_required = True
+# لیست کانال‌های جوین اجباری
+mandatory_channels = {}  # {channel_id: "نام کانال"}
+OWNER_ID = [1924774929]
+# مدیریت دستورات
+@Client.on_message(filters.private & ~filters.command("start"))
+async def check_mandatory_join(client, message):
+    user_id = message.from_user.id
 
+    # بررسی عضویت
+    not_joined = []
+    for channel_id, channel_name in mandatory_channels.items():
+        try:
+            member = await client.get_chat_member(channel_id, user_id)
+            if member.status not in ["member", "administrator", "creator"]:
+                not_joined.append((channel_id, channel_name))
+        except:
+            not_joined.append((channel_id, channel_name))
 
-@app.on_message(filters.text & filters.private)
-async def handle_commands(client: Client, message: Message):
-    global join_required
+    # کاربر عضو تمام کانال‌ها نیست
+    if not_joined:
+        buttons = [
+            [InlineKeyboardButton(f"عضویت در {name}", url=f"https://t.me/{channel_id}")]
+            for channel_id, name in not_joined
+        ]
+        buttons.append([InlineKeyboardButton("تأیید عضویت", callback_data="check_join")])
+        reply_markup = InlineKeyboardMarkup(buttons)
 
-    # Restrict access to SUDOERS only
-    if message.from_user.id not in SUDOERS:
         await message.reply(
-            "⛔ این دستور فقط برای مدیران مجاز است.\n⛔ This command is restricted to OWNER_ID."
+            "❌ برای استفاده از ربات، ابتدا در کانال‌های زیر عضو شوید:",
+            reply_markup=reply_markup,
         )
         return
 
-    text = message.text.strip().lower()
+    # کاربر عضو تمام کانال‌هاست
+    await message.reply("✅ شما عضو همه کانال‌های الزامی هستید! حالا می‌توانید از ربات استفاده کنید.")
 
-    if text in ["اضافه کردن جوین", "add join"]:
-        reply = await message.chat.ask(
-            "کانال را وارد کنید:\nEnter the channel:",
-            filters=filters.text & filters.user(message.from_user.id),
-            reply_to_message_id=message.id,
+
+# اضافه کردن کانال جدید به لیست جوین اجباری
+@Client.on_message(filters.command("add_channel") & filters.user([OWNER_ID]))  # جایگزین OWNER_ID با شناسه مالک
+async def add_channel(client, message):
+    if len(message.command) < 3:
+        await message.reply("❌ استفاده صحیح: /add_channel <آیدی کانال> <نام کانال>")
+        return
+
+    channel_id = message.command[1]
+    channel_name = message.command[2]
+    mandatory_channels[channel_id] = channel_name
+
+    await message.reply(f"✅ کانال {channel_name} با موفقیت به لیست جوین اجباری اضافه شد.")
+
+
+# حذف کانال از لیست جوین اجباری
+@Client.on_message(filters.command("remove_channel") & filters.user([OWNER_ID]))
+async def remove_channel(client, message):
+    if len(message.command) < 2:
+        await message.reply("❌ استفاده صحیح: /remove_channel <آیدی کانال>")
+        return
+
+    channel_id = message.command[1]
+    if channel_id in mandatory_channels:
+        del mandatory_channels[channel_id]
+        await message.reply("✅ کانال از لیست جوین اجباری حذف شد.")
+    else:
+        await message.reply("❌ کانالی با این آیدی در لیست وجود ندارد.")
+
+
+# بررسی عضویت پس از کلیک روی کلید تأیید
+@Client.on_callback_query(filters.regex("check_join"))
+async def handle_join_check(client, callback_query):
+    user_id = callback_query.from_user.id
+
+    # بررسی عضویت
+    not_joined = []
+    for channel_id, channel_name in mandatory_channels.items():
+        try:
+            member = await client.get_chat_member(channel_id, user_id)
+            if member.status not in ["member", "administrator", "creator"]:
+                not_joined.append(channel_name)
+        except:
+            not_joined.append(channel_name)
+
+    if not_joined:
+        await callback_query.answer(
+            f"هنوز در کانال‌های زیر عضو نیستید: {', '.join(not_joined)} 🤨",
+            show_alert=True,
         )
-        channel_id = reply.text.strip()
-
-        if channel_id not in forced_channels:
-            forced_channels.append(channel_id)
-            await message.reply(
-                f"کانال {channel_id} به لیست جوین اجباری اضافه شد.\nChannel {channel_id} has been added to the forced join list."
-            )
-        else:
-            await message.reply(
-                "این کانال قبلاً در لیست وجود دارد.\nThis channel is already in the list."
-            )
-
-    elif text in ["نمایش لیست جوین", "show join list"]:
-        if forced_channels:
-            buttons = [
-                [
-                    InlineKeyboardButton(
-                        text="عضویت در کانال / Join Channel",
-                        url=f"https://t.me/{channel.replace('@', '')}",
-                    )
-                ]
-                for channel in forced_channels
-            ]
-            buttons.append(
-                [InlineKeyboardButton("عضو شدم / Joined", callback_data="check_join")]
-            )
-            await message.reply(
-                "لیست کانال‌های جوین اجباری:\nList of forced join channels:",
-                reply_markup=InlineKeyboardMarkup(buttons),
-            )
-        else:
-            await message.reply(
-                "هیچ کانالی در لیست وجود ندارد.\nNo channels in the list."
-            )
-
-    elif text in ["حذف جوین", "remove join"]:
-        reply = await message.chat.ask(
-            "کانالی که می‌خواهید حذف کنید را وارد کنید:\nEnter the channel to remove:",
-            filters=filters.text & filters.user(message.from_user.id),
-            reply_to_message_id=message.id,
-        )
-        channel_id = reply.text.strip()
-
-        if channel_id in forced_channels:
-            forced_channels.remove(channel_id)
-            await message.reply(
-                f"کانال {channel_id} از لیست حذف شد.\nChannel {channel_id} has been removed from the list."
-            )
-        else:
-            await message.reply(
-                "این کانال در لیست وجود ندارد.\nThis channel is not in the list."
-            )
-
-    elif text in ["جوین روشن", "enable join"]:
-        join_required = True
-        await message.reply("جوین اجباری فعال شد.\nForced join has been enabled.")
-
-    elif text in ["جوین خاموش", "disable join"]:
-        join_required = False
-        await message.reply("جوین اجباری غیرفعال شد.\nForced join has been disabled.")
-
-
-@app.on_callback_query(filters.regex("check_join"))
-async def check_user_join(client: Client, callback_query):
-    if join_required and forced_channels:
-        user_id = callback_query.from_user.id
-
-        not_joined = []
-        for channel in forced_channels:
-            try:
-                await client.get_chat_member(channel, user_id)
-            except BaseException:
-                not_joined.append(channel)
-
-        if not not_joined:
-            await callback_query.message.reply(
-                "😎 عالی! حالا می‌تونی از ربات استفاده کنی!\nAwesome! You can now use the bot!"
-            )
-        else:
-            await callback_query.message.reply(
-                "🤨 هنوز عضو همه کانال‌ها نشدی!\nYou haven't joined all the channels yet!"
-            )
-
-
-@app.on_message(filters.private, group=-3)
-async def enforce_join(client: Client, message: Message):
-    if join_required and forced_channels:
-
-        not_joined = []
-        for channel in forced_channels:
-            try:
-                await client.get_chat_member(channel, message.from_user.id)
-            except BaseException:
-                not_joined.append(channel)
-
-        if not_joined:
-            buttons = [
-                [
-                    InlineKeyboardButton(
-                        text="عضویت در کانال / Join Channel",
-                        url=f"https://t.me/{channel.replace('@', '')}",
-                    )
-                ]
-                for channel in not_joined
-            ]
-            buttons.append(
-                [InlineKeyboardButton("عضو شدم / Joined", callback_data="check_join")]
-            )
-            await message.reply(
-                "برای استفاده از ربات، ابتدا در کانال‌های زیر عضو شوید:\nTo use the bot, join the following channels first:",
-                reply_markup=InlineKeyboardMarkup(buttons),
-            )
-            return
+    else:
+        await callback_query.answer("شما عضو همه کانال‌ها هستید! 😎", show_alert=True)
+        await callback_query.message.reply(
+            "🎉 حالا می‌توانید از ربات استفاده کنید. امیدوارم خوش بگذره!")
