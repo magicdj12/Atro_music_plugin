@@ -5,8 +5,8 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 mandatory_channels = {}  # {channel_id: "نام کانال"}
 OWNER_ID = [1924774929]  # شناسه عددی مالک (عدد)
 
-# مدیریت دستورات
-@Client.on_message(filters.private & ~filters.command("start"))
+# بررسی عضویت کاربران
+@Client.on_message(filters.private & ~filters.command(["start", "add_channel", "remove_channel"]))
 async def check_mandatory_join(client, message):
     user_id = message.from_user.id
 
