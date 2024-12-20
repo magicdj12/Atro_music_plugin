@@ -67,7 +67,8 @@ async def select_couple(_, message):
 
     try:
         members = []
-        async for member in app.get_chat_members(chat_id, limit=100):
+        # گرفتن تمام اعضای گروه
+        async for member in app.get_chat_members(chat_id):
             if (
                 not member.user.is_bot
                 and not member.user.is_deleted
@@ -78,15 +79,8 @@ async def select_couple(_, message):
         if len(members) < 2:
             return await message.reply_text("❌ کاربران کافی برای انتخاب وجود ندارد.")
 
-        # تلاش برای انتخاب یک دختر و یک پسر
-        females = [m for m in members if "خانم" in (m.first_name or "") or "خانم" in (m.last_name or "")]
-        males = [m for m in members if "آقا" in (m.first_name or "") or "آقا" in (m.last_name or "")]
-
-        if females and males:
-            user1 = random.choice(females)
-            user2 = random.choice(males)
-        else:
-            user1, user2 = random.sample(members, 2)
+        # بررسی و انتخاب دو کاربر به صورت تصادفی
+        user1, user2 = random.sample(members, 2)
 
         # دانلود عکس کاربران
         try:
@@ -99,14 +93,9 @@ async def select_couple(_, message):
         except Exception:
             photo2 = None
 
-        # ایجاد تصویر پس‌زمینه با نورپردازی
+        # ایجاد تصویر پس‌زمینه
         background = Image.new("RGB", (1000, 800), (30, 30, 50))
         draw = ImageDraw.Draw(background)
-        gradient = Image.new("RGBA", background.size, (255, 0, 0, 0))
-        for y in range(gradient.height):
-            opacity = int(255 * (1 - y / gradient.height))
-            draw.rectangle([(0, y), (gradient.width, y + 1)], fill=(255, 182, 193, opacity))
-        background = Image.alpha_composite(background.convert("RGBA"), gradient).convert("RGB")
 
         if photo1:
             img1 = Image.open(photo1).resize((400, 400)).convert("RGBA")
