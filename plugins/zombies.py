@@ -34,7 +34,7 @@ async def check_mandatory_join(client, message):
         buttons.append([InlineKeyboardButton("تأیید عضویت", callback_data="check_join")])
         reply_markup = InlineKeyboardMarkup(buttons)
 
-        await message.reply(
+        return await message.reply(
             "❌ برای استفاده از ربات، ابتدا در کانال‌های زیر عضو شوید:",
             reply_markup=reply_markup,
         )
@@ -48,7 +48,7 @@ async def check_mandatory_join(client, message):
 @app.on_message(filters.command("add_channel") & filters.user(OWNER_ID))
 async def add_channel(client, message):
     if len(message.command) < 3:
-        await message.reply("❌ استفاده صحیح: /add_channel <آیدی کانال> <نام کانال>")
+        return await message.reply("❌ استفاده صحیح: /add_channel <آیدی کانال> <نام کانال>")
         return
 
     channel_id = int(message.command[1])  # اطمینان از اینکه آیدی به عدد تبدیل می‌شود
@@ -62,7 +62,7 @@ async def add_channel(client, message):
 @app.on_message(filters.command("remove_channel") & filters.user(OWNER_ID))
 async def remove_channel(client, message):
     if len(message.command) < 2:
-        await message.reply("❌ استفاده صحیح: /remove_channel <آیدی کانال>")
+        return await message.reply("❌ استفاده صحیح: /remove_channel <آیدی کانال>")
         return
 
     channel_id = int(message.command[1])  # اطمینان از اینکه آیدی به عدد تبدیل می‌شود
@@ -70,7 +70,7 @@ async def remove_channel(client, message):
         del mandatory_channels[channel_id]
         await message.reply("✅ کانال از لیست جوین اجباری حذف شد.")
     else:
-        await message.reply("❌ کانالی با این آیدی در لیست وجود ندارد.")
+        return await message.reply("❌ کانالی با این آیدی در لیست وجود ندارد.")
 
 
 # بررسی عضویت پس از کلیک روی دکمه "تأیید عضویت"
