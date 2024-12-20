@@ -4,7 +4,7 @@ from YukkiMusic import app
 
 
 # لیست کانال‌های جوین اجباری
-mandatory_channels = {}  # {channel_id: "نام کانال"}
+mandatory_channels = {-1002112347966 , 'hdhdhdhd'}  # {channel_id: "نام کانال"}
 OWNER_ID = [1924774929]  # شناسه عددی مالک (عدد)
 
 # بررسی عضویت کاربران
