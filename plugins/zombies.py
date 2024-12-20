@@ -1,5 +1,7 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from YukkiMusic import app
+
 
 # لیست کانال‌های جوین اجباری
 mandatory_channels = {}  # {channel_id: "نام کانال"}
