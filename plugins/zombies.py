@@ -1,5 +1,6 @@
 from YukkiMusic import app
-from YukkiMusic.misc import SUDOERS
+from os import getenv
+from YukkiMusic.misc import OWNER_ID
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
@@ -13,9 +14,9 @@ async def handle_commands(client: Client, message: Message):
     global join_required
 
     # Restrict access to SUDOERS only
-    if message.from_user.id not in SUDOERS:
+    if message.from_user.id not in OWNER_ID:
         await message.reply(
-            "⛔ این دستور فقط برای مدیران مجاز است.\n⛔ This command is restricted to SUDOERS."
+            "⛔ این دستور فقط برای مدیران مجاز است.\n⛔ This command is restricted to OWNER_ID."
         )
         return
 
