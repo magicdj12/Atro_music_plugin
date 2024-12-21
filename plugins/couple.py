@@ -2,7 +2,7 @@ import os
 import random
 from datetime import datetime
 import pytz
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from pyrogram import filters
 from pyrogram.enums import ChatType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -41,22 +41,23 @@ poems = [
     "تو دلیل خوشبختی منی.",
 ]
 
-# 📅 دریافت تاریخ امروز و ساعت
+# دریافت تاریخ و زمان فعلی
 def get_datetime_info():
     now = datetime.now(pytz.timezone("Asia/Tehran"))
-    jalali_date = now.strftime("%Y/%m/%d")  # تاریخ شمسی (فرضی)
-    gregorian_date = now.strftime("%d %B %Y")  # تاریخ میلادی
-    time_now = now.strftime("%H:%M:%S")  # ساعت
+    jalali_date = now.strftime("%Y/%m/%d")
+    gregorian_date = now.strftime("%d %B %Y")
+    time_now = now.strftime("%H:%M:%S")
     return jalali_date, gregorian_date, time_now
 
-# 📥 دانلود تصویر از آدرس اینترنتی
-def download_image(url, path):
-    import requests
-    response = requests.get(url)
-    if response.status_code == 200:
-        with open(path, "wb") as f:
-            f.write(response.content)
-    return path
+# دایره‌ای کردن تصاویر
+def circle_image(image_path, size):
+    image = Image.open(image_path).resize(size).convert("RGBA")
+    mask = Image.new("L", size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0) + size, fill=255)
+    output = ImageOps.fit(image, size, centering=(0.5, 0.5))
+    output.putalpha(mask)
+    return output
 
 # دستور زوج
 @app.on_message(filters.command("زوج") & ~filters.private)
@@ -74,68 +75,60 @@ async def select_couple(_, message):
     if len(members) < 2:
         return await message.reply_text("❌ اعضای کافی برای انتخاب زوج وجود ندارند.")
 
-    # انتخاب تصادفی
+    # انتخاب تصادفی کاربران
     user1 = random.choice(members)
     user2 = random.choice(members)
     while user1.id == user2.id:
         user2 = random.choice(members)
 
-    # دانلود تصاویر پروفایل
-    p1_path = f"downloads/{user1.id}.jpg"
-    p2_path = f"downloads/{user2.id}.jpg"
+    # دانلود تصاویر پروفایل کاربران
+    p1_path = f"downloads/{user1.id}.png"
+    p2_path = f"downloads/{user2.id}.png"
     try:
         photo1 = await app.download_media(user1.photo.big_file_id, file_name=p1_path)
-    except Exception:
-        photo1 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p1_path)
+    except:
+        photo1 = "default_profile.png"
 
     try:
         photo2 = await app.download_media(user2.photo.big_file_id, file_name=p2_path)
-    except Exception:
-        photo2 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p2_path)
+    except:
+        photo2 = "default_profile.png"
 
-    # پس‌زمینه
+    # ایجاد پس‌زمینه
     bg_url = "https://telegra.ph/file/96f36504f149e5680741a.jpg"
     bg_path = "downloads/background.jpg"
-    download_image(bg_url, bg_path)
-    background = Image.open(bg_path).convert("RGBA").filter(ImageFilter.GaussianBlur(2))
+    background = Image.open(bg_url).convert("RGBA")
 
-    # تصاویر پروفایل کاربران
-    img1 = Image.open(photo1).resize((400, 400)).convert("RGBA")
-    img2 = Image.open(photo2).resize((400, 400)).convert("RGBA")
+    # تصاویر پروفایل کاربران به‌صورت دایره‌ای
+    img1 = circle_image(photo1, (200, 200))
+    img2 = circle_image(photo2, (200, 200))
 
-    # دایره‌ای کردن تصاویر
-    mask = Image.new("L", (400, 400), 0)
-    draw = ImageDraw.Draw(mask)
-    draw.ellipse((0, 0, 400, 400), fill=255)
-    img1.putalpha(mask)
-    img2.putalpha(mask)
+    # اضافه کردن تصاویر به پس‌زمینه
+    background.paste(img1, (150, 200), img1)
+    background.paste(img2, (600, 200), img2)
 
-    # ترکیب تصاویر با پس‌زمینه
-    background.paste(img1, (150, 150), img1)
-    background.paste(img2, (600, 150), img2)
-
-    # اضافه کردن متن و نام کاربران
+    # اضافه کردن نام کاربران
     draw = ImageDraw.Draw(background)
     try:
-        font = ImageFont.truetype("arial.ttf", 50)
+        font = ImageFont.truetype("arial.ttf", 40)
     except IOError:
         font = ImageFont.load_default()
 
-# اضافه کردن افکت نور و نام کاربران
-    draw.text((150, 570), f"{user1.first_name}", font=font, fill="yellow")
-    draw.text((600, 570), f"{user2.first_name}", font=font, fill="yellow")
+    # نام کاربران دور عکس پروفایل
+    draw.text((150, 420), user1.first_name, font=font, fill="white")
+    draw.text((600, 420), user2.first_name, font=font, fill="white")
 
-    # تاریخ و زمان
+    # تاریخ و ساعت
     jalali_date, gregorian_date, time_now = get_datetime_info()
-    draw.text((50, 650), f"📅 تاریخ شمسی: {jalali_date}", font=font, fill="white")
-    draw.text((50, 700), f"📅 تاریخ میلادی: {gregorian_date}", font=font, fill="white")
-    draw.text((50, 750), f"⏰ ساعت: {time_now}", font=font, fill="white")
+    draw.text((50, 600), f"📅 تاریخ شمسی: {jalali_date}", font=font, fill="white")
+    draw.text((50, 650), f"📅 تاریخ میلادی: {gregorian_date}", font=font, fill="white")
+    draw.text((50, 700), f"⏰ ساعت: {time_now}", font=font, fill="white")
 
-    # ذخیره نتیجه
+# ذخیره تصویر نهایی
     result_path = f"downloads/result_{chat_id}.png"
     background.save(result_path)
 
-    # شعر تصادفی
+    # انتخاب شعر تصادفی
     random_poem = random.choice(poems)
 
     # کپشن نهایی
@@ -161,6 +154,6 @@ async def select_couple(_, message):
     )
 
     # حذف فایل‌های موقت
-    for path in [p1_path, p2_path, bg_path, result_path]:
+    for path in [p1_path, p2_path, result_path]:
         if os.path.exists(path):
             os.remove(path)
