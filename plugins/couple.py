@@ -3,42 +3,12 @@ import random
 import requests
 from PIL import Image, ImageDraw, ImageFont
 from pyrogram import filters
-from pyrogram.enums import ChatType
+from pyrogram.enums import ChatType, ChatMembersFilter
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from YukkiMusic import app
 
 # لیست اشعار عاشقانه
 LOVE_QUOTES = [
-    "تو با قلب ویرانه‌ی من چه کردی؟\nببین عشق دیوانه‌ی من چه کردی؟",
-    "بهترین لحظه‌ام، همین حالاست\nکه تو باشی کنار من، جانم.",
-    "عشق یعنی نگاه تو، یعنی آرامش وجودم.",
-    "چشمانت شعر می‌گوید و من عاشقانه می‌نویسم.",
-    "بی‌تو من هیچم، با تو همه‌چیزم.",
-    "تا همیشه با تو خواهم بود، مثل نفس.",
-    "زندگی‌ام در نگاهت خلاصه می‌شود.",
-    "تو همان شعری که در قلبم حک شده‌ای.",
-    "عشق یعنی تو، یعنی ما، یعنی همیشه.",
-    "قلبم تنها برای تو می‌تپد.",
-    "عاشق تو بودن، زیباترین حس دنیاست.",
-    "هر لحظه که تو را می‌بینم، قلبم دوباره می‌تپد.",
-    "می‌خواهم همیشه در کنار تو بمانم، بی‌هیچ دلیل.",
-    "لبخندت دلیل زندگی من است.",
-    "عشق تو، زیباترین اتفاق زندگی من است.",
-    "قلبم تنها برای تو می‌زند، حتی در خواب.",
-    "تو همان رویای شیرینی که هرگز تمام نمی‌شود.",
-    "تو تنها دلیل خوشبختی‌ام هستی.",
-    "با تو، دنیا زیباتر است.",
-    "عشق یعنی دیدن لبخندت در هر صبح.",
-    "تو تمام آرامش دنیا هستی.",
-    "تو مثل شعری که هرگز کهنه نمی‌شود.",
-    "من برای تو، تو برای من، ما برای همیشه.",
-    "بی‌تو دنیا چیزی کم دارد.",
-    "عشق یعنی زندگی‌ام با حضور تو کامل است.",
-    "با تو بودن، بزرگ‌ترین نعمت خداوند است.",
-    "تو دلیل لبخندهای بی‌اختیار منی.",
-    "زندگی در کنار تو معنای عشق را کامل می‌کند.",
-    "تو همان گمشده‌ای که همیشه می‌خواستم.",
-    "هر لحظه با تو مثل یک شعر عاشقانه است.",
     "عشق همین است، در نگاه تو گم شدن...",
     "تو تمام دلیل زندگی منی...",
     "با تو تمام جهان زیباست...",
@@ -46,12 +16,25 @@ LOVE_QUOTES = [
     "در نگاهت هزار راز عشق نهفته است..."
 ]
 
-def download_image(url, path):
-    response = requests.get(url)
-    if response.status_code == 200:
-        with open(path, "wb") as f:
-            f.write(response.content)
-    return path
+# تصویر پیش‌فرض
+DEFAULT_IMAGE_URL = "https://telegra.ph/file/05aa686cf52fc666184bf.jpg"
+DEFAULT_IMAGE_PATH = "default_pfp.png"
+
+def download_default_image():
+    if not os.path.exists(DEFAULT_IMAGE_PATH):
+        response = requests.get(DEFAULT_IMAGE_URL)
+        if response.status_code == 200:
+            with open(DEFAULT_IMAGE_PATH, "wb") as f:
+                f.write(response.content)
+
+# برش دایره‌ای عکس
+def circle_crop(image_path):
+    img = Image.open(image_path).resize((256, 256))
+    mask = Image.new("L", img.size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0) + img.size, fill=255)
+    img.putalpha(mask)
+    return img
 
 # دستورات اصلی
 @app.on_message(filters.command("زوج"))
@@ -72,7 +55,7 @@ async def select_couple(_, message):
     else:  # حالت تصادفی
         members = [
             m.user
-            async for m in app.get_chat_members(chat_id, filter="recently")
+            async for m in app.get_chat_members(chat_id, filter=ChatMembersFilter.RECENT)
             if not m.user.is_bot
         ]
         if len(members) < 2:
@@ -85,31 +68,25 @@ async def select_couple(_, message):
     user2 = await app.get_users(c2)
     name1, name2 = user1.first_name, user2.first_name
 
-    p1_path, p2_path = "pfp1.png", "pfp2.png"
+    download_default_image()
+
+    p1_path = "pfp1.png"
+    p2_path = "pfp2.png"
     try:
-        p1 = await app.download_media(user1.photo.big_file_id, p1_path) if user1.photo else None
-        p2 = await app.download_media(user2.photo.big_file_id, p2_path) if user2.photo else None
+        p1 = await app.download_media(user1.photo.big_file_id, p1_path) if user1.photo else DEFAULT_IMAGE_PATH
+        p2 = await app.download_media(user2.photo.big_file_id, p2_path) if user2.photo else DEFAULT_IMAGE_PATH
     except:
-        p1, p2 = None, None
+        p1, p2 = DEFAULT_IMAGE_PATH, DEFAULT_IMAGE_PATH
 
     # تنظیم عکس‌ها
     background = Image.new("RGB", (1024, 512), "black")
     draw = ImageDraw.Draw(background)
 
-    def circle_crop(image_path):
-        img = Image.open(image_path).resize((256, 256))
-        mask = Image.new("L", img.size, 0)
-        draw = ImageDraw.Draw(mask)
-        draw.ellipse((0, 0) + img.size, fill=255)
-        img.putalpha(mask)
-        return img
+    img1 = circle_crop(p1)
+    img2 = circle_crop(p2)
 
-    if p1:
-        img1 = circle_crop(p1_path)
-        background.paste(img1, (128, 128), img1)
-    if p2:
-        img2 = circle_crop(p2_path)
-        background.paste(img2, (640, 128), img2)
+    background.paste(img1, (128, 128), img1)
+    background.paste(img2, (640, 128), img2)
 
     # اضافه کردن نام‌ها
     font = ImageFont.truetype("arial.ttf", 40)
@@ -124,9 +101,34 @@ async def select_couple(_, message):
     result_path = "couple_result.png"
     background.save(result_path)
 
-    await message.reply_photo(result_path, caption=f"{name1} ❤️ {name2}\n{quote}")
+    # دکمه شیشه‌ای
+    keyboard = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("منو ببر گروهت", callback_data="show_groups")]]
+    )
+
+    await message.reply_photo(
+        result_path, 
+        caption=f"{name1} ❤️ {name2}\n{quote}", 
+        reply_markup=keyboard
+    )
 
     # پاک کردن فایل‌ها
     for path in [p1_path, p2_path, result_path]:
         if os.path.exists(path):
             os.remove(path)
+
+# هندلر برای نمایش گروه‌ها
+@app.on_callback_query(filters.regex("show_groups"))
+async def show_user_groups(client, callback_query):
+    user_id = callback_query.from_user.id
+    groups = [
+        chat async for chat in client.get_dialogs()
+        if chat.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]
+        and chat.chat.member_count
+        and user_id in [m.user.id async for m in client.get_chat_members(chat.chat.id)]
+    ]
+    if groups:
+        group_names = "\n".join([chat.chat.title for chat in groups])
+        await callback_query.message.reply_text(f"📋 لیست گروه‌های شما:\n\n{group_names}")
+    else:
+        await callback_query.message.reply_text("❌ شما در هیچ گروهی عضو نیستید.")
