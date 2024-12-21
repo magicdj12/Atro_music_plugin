@@ -1,23 +1,55 @@
 import os
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from pyrogram import filters
 from pyrogram.enums import ChatType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from YukkiMusic import app
 
-# 📅 دریافت تاریخ و زمان
+# لیست اشعار عاشقانه
+poems = [
+    "تو شعر زندگی منی.",
+    "زندگی با تو یعنی بهشت.",
+    "تو آرامش دل منی.",
+    "با تو دنیا زیباتره.",
+    "تو نبض قلب منی.",
+    "عشق یعنی نام تو.",
+    "تو خورشید زندگی منی.",
+    "زندگی بدون تو بی‌رنگ است.",
+    "قلبم برای تو می‌تپد.",
+    "تو آرزوی هر شب منی.",
+    "در نگاه تو زندگی را یافتم.",
+    "تو دریای آرامش منی.",
+    "زندگی با عشق تو زیباست.",
+    "با تو هر لحظه‌ام خوشبختی است.",
+    "تو صدای قلب منی.",
+    "با تو بودن، رویای من است.",
+    "عشق تو دلیل تپش قلبم است.",
+    "با تو، همه چیز کامل است.",
+    "هر لحظه با تو، بهشت است.",
+    "تو نور زندگی منی.",
+    "با تو، دنیا زیباتر می‌شود.",
+    "قلبم تنها برای تو می‌تپد.",
+    "عشق تو، زندگی‌ام را روشن کرده.",
+    "با تو، زندگی معنای دیگری دارد.",
+    "تو امید هر روز منی.",
+    "قلب من برای تو می‌تپد.",
+    "تو شاهکار زندگی منی.",
+    "با تو، همه چیز زیباست.",
+    "تو دلیل خوشبختی منی.",
+]
+
+# 📅 دریافت تاریخ امروز و ساعت
 def get_datetime_info():
-    timezone = pytz.timezone("Asia/Tehran")
-    now = datetime.now(timezone)
-    jalali_date = now.strftime("%Y/%m/%d")  # جایگزین با ماژول‌های تقویم شمسی (مثل khayyam) در صورت نیاز
-    gregorian_date = now.strftime("%d %B %Y")
-    time_now = now.strftime("%H:%M:%S")
+    now = datetime.now(pytz.timezone("Asia/Tehran"))
+    jalali_date = now.strftime("%Y/%m/%d")  # تاریخ شمسی (فرضی)
+    gregorian_date = now.strftime("%d %B %Y")  # تاریخ میلادی
+    time_now = now.strftime("%H:%M:%S")  # ساعت
     return jalali_date, gregorian_date, time_now
 
-# 📥 دانلود تصویر از URL
+# 📥 دانلود تصویر از آدرس اینترنتی
 def download_image(url, path):
     import requests
     response = requests.get(url)
@@ -26,121 +58,91 @@ def download_image(url, path):
             f.write(response.content)
     return path
 
-# 🎲 لیست اشعار عاشقانه
-poems = [
-    "✨ تو شعر زندگی منی.",
-    "💞 عشق یعنی تو، یعنی ما.",
-    "🌹 دنیای من با تو زیباست.",
-    "❤️ قلبم تنها با تو می‌تپد.",
-    "🎵 آهنگ زندگی منی.",
-    "🌺 هر لحظه کنار تو بهشت است.",
-    "🔥 گرمای عشق تو زندگی‌ام را روشن می‌کند.",
-    "💖 تو در قلبم همیشه خواهی ماند.",
-    "💎 با تو همه‌چیز زیباتر است.",
-    "🌟 ستاره‌های شب تنها با نگاه تو معنا دارند.",
-    "🌷 تو گل سرسبد عشق منی.",
-    "💞 با تو دنیا زیباتر است.",
-    "🌈 زندگی بدون تو رنگی ندارد.",
-    "🌻 خورشید قلب من تویی.",
-    "💌 نامه عشق من به تو هر روز نوشته می‌شود.",
-    "🌙 تو ماه شب‌های تار منی.",
-    "💓 تنها در آغوش تو آرام می‌گیرم.",
-    "🦋 زندگی‌ام پر از پروانه‌های عشق است، به لطف تو.",
-    "🌼 تو باغ آرزوهای منی.",
-    "🎉 عشق تو جشن زندگی من است.",
-    "✨ نگاهت جادوی لحظه‌های من است.",
-    "💞 عشق یعنی تو در کنار من.",
-    "🌹 تو گل عشقی که در قلبم شکوفا شده است.",
-    "💖 زندگی بدون تو هیچ است.",
-    "💎 تو ارزشمندترین دارایی منی.",
-    "🔥 تو شعله عشقی که در قلبم می‌سوزد.",
-    "🌺 هر لحظه با تو بهشت است.",
-    "❤️ تو تنها دلیل لبخند منی.",
-    "🌷 تو گل عشقی که در قلبم رشد کرده است.",
-    "✨ ستاره‌های شب تنها با نگاه تو معنا دارند."
-]
-
-# 🎲 دستور انتخاب زوج
+# دستور زوج
 @app.on_message(filters.command("زوج") & ~filters.private)
-async def random_couple(_, message):
+async def select_couple(_, message):
     chat_id = message.chat.id
 
     if message.chat.type != ChatType.SUPERGROUP:
         return await message.reply_text("❌ این دستور فقط در گروه‌ها فعال است.")
 
-    try:
-        members = []
-        async for member in app.get_chat_members(chat_id, limit=100):
-            if not member.user.is_bot and not member.user.is_deleted:
-                members.append(member.user)
+    members = []
+    async for member in app.get_chat_members(chat_id, limit=50):
+        if not member.user.is_bot and not member.user.is_deleted:
+            members.append(member.user)
 
-        if len(members) < 2:
-            return await message.reply_text("❌ تعداد کاربران کافی نیست.")
+    if len(members) < 2:
+        return await message.reply_text("❌ اعضای کافی برای انتخاب زوج وجود ندارند.")
 
-        user1 = random.choice(members)
+    # انتخاب تصادفی
+    user1 = random.choice(members)
+    user2 = random.choice(members)
+    while user1.id == user2.id:
         user2 = random.choice(members)
-        while user1.id == user2.id:
-            user2 = random.choice(members)
 
-        # دانلود عکس پروفایل کاربران
-        p1_path = f"downloads/{user1.id}.jpg"
-        p2_path = f"downloads/{user2.id}.jpg"
-        try:
-            photo1 = await app.download_media(user1.photo.big_file_id, file_name=p1_path)
-        except Exception:
-            photo1 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p1_path)
+    # دانلود تصاویر پروفایل
+    p1_path = f"downloads/{user1.id}.jpg"
+    p2_path = f"downloads/{user2.id}.jpg"
+    try:
+        photo1 = await app.download_media(user1.photo.big_file_id, file_name=p1_path)
+    except Exception:
+        photo1 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p1_path)
 
-        try:
-            photo2 = await app.download_media(user2.photo.big_file_id, file_name=p2_path)
-        except Exception:
-            photo2 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p2_path)
+    try:
+        photo2 = await app.download_media(user2.photo.big_file_id, file_name=p2_path)
+    except Exception:
+        photo2 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p2_path)
 
-        # پس‌زمینه عاشقانه
-        bg_path = "downloads/background.jpg"
-        bg_url = "https://telegra.ph/file/96f36504f149e5680741a.jpg"
-        download_image(bg_url, bg_path)
+    # پس‌زمینه
+    bg_url = "https://telegra.ph/file/96f36504f149e5680741a.jpg"
+    bg_path = "downloads/background.jpg"
+    download_image(bg_url, bg_path)
+    background = Image.open(bg_path).convert("RGBA").filter(ImageFilter.GaussianBlur(2))
 
-        background = Image.open(bg_path).convert("RGBA")
-        img1 = Image.open(photo1).resize((400, 400)).convert("RGBA")
-        img2 = Image.open(photo2).resize((400, 400)).convert("RGBA")
+    # تصاویر پروفایل کاربران
+    img1 = Image.open(photo1).resize((400, 400)).convert("RGBA")
+    img2 = Image.open(photo2).resize((400, 400)).convert("RGBA")
 
-        # ماسک دایره‌ای
-        mask = Image.new("L", (400, 400), 0)
-        draw = ImageDraw.Draw(mask)
-        draw.ellipse((0, 0, 400, 400), fill=255)
+    # دایره‌ای کردن تصاویر
+    mask = Image.new("L", (400, 400), 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0, 400, 400), fill=255)
+    img1.putalpha(mask)
+    img2.putalpha(mask)
 
-        img1.putalpha(mask)
-        img2.putalpha(mask)
+    # ترکیب تصاویر با پس‌زمینه
+    background.paste(img1, (150, 150), img1)
+    background.paste(img2, (600, 150), img2)
 
-# ترکیب تصاویر
-        background.paste(img1, (100, 150), img1)
-        background.paste(img2, (600, 150), img2)
+    # اضافه کردن متن و نام کاربران
+    draw = ImageDraw.Draw(background)
+    try:
+        font = ImageFont.truetype("arial.ttf", 50)
+    except IOError:
+        font = ImageFont.load_default()
 
-        # اضافه کردن متن
-        draw = ImageDraw.Draw(background)
-        try:
-            font = ImageFont.truetype("arial.ttf", 50)
-        except IOError:
-            font = ImageFont.load_default()
+# اضافه کردن افکت نور و نام کاربران
+    draw.text((150, 570), f"{user1.first_name}", font=font, fill="yellow")
+    draw.text((600, 570), f"{user2.first_name}", font=font, fill="yellow")
 
-        jalali_date, gregorian_date, time_now = get_datetime_info()
-        draw.text((50, 50), "🌸 زوج امروز 🌸", font=font, fill="white")
-        draw.text((50, 600), f"📅 تاریخ شمسی: {jalali_date}", font=font, fill="white")
-        draw.text((50, 650), f"📅 تاریخ میلادی: {gregorian_date}", font=font, fill="white")
-        draw.text((50, 700), f"⏰ ساعت: {time_now}", font=font, fill="white")
+    # تاریخ و زمان
+    jalali_date, gregorian_date, time_now = get_datetime_info()
+    draw.text((50, 650), f"📅 تاریخ شمسی: {jalali_date}", font=font, fill="white")
+    draw.text((50, 700), f"📅 تاریخ میلادی: {gregorian_date}", font=font, fill="white")
+    draw.text((50, 750), f"⏰ ساعت: {time_now}", font=font, fill="white")
 
-        # ذخیره تصویر
-        result_path = f"downloads/result_{chat_id}.png"
-        background.save(result_path)
+    # ذخیره نتیجه
+    result_path = f"downloads/result_{chat_id}.png"
+    background.save(result_path)
 
-        # انتخاب شعر تصادفی
-        random_poem = random.choice(poems)
+    # شعر تصادفی
+    random_poem = random.choice(poems)
 
-        # ارسال پیام با تصویر
-        caption = f"""
+    # کپشن نهایی
+    caption = f"""
 🌟 زوج امروز گروه:
 
-《{user1.first_name}》 ❤️ 《{user2.first_name}》
+{user1.first_name} (tg://user?id={user1.id}) ❤️ {user2.first_name} (tg://user?id={user2.id})
 
 📅 تاریخ شمسی: {jalali_date}
 📅 تاریخ میلادی: {gregorian_date}
@@ -148,17 +150,17 @@ async def random_couple(_, message):
 
 ✨ {random_poem}
 """
-        await message.reply_photo(
-            photo=result_path,
-            caption=caption,
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("✨ اضافه کردن من به گروه", url=f"https://t.me/{app.username}?startgroup=true")]]
-            ),
-        )
-    except Exception as e:
-        await message.reply_text(f"⚠️ خطا: {e}")
-    finally:
-        # حذف فایل‌های موقت
-        for path in [p1_path, p2_path, bg_path, result_path]:
-            if os.path.exists(path):
-                os.remove(path)
+
+    # ارسال تصویر
+    await message.reply_photo(
+        photo=result_path,
+        caption=caption,
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton("✨ اضافه کردن من به گروه", url=f"https://t.me/{app.username}?startgroup=true")]]
+        ),
+    )
+
+    # حذف فایل‌های موقت
+    for path in [p1_path, p2_path, bg_path, result_path]:
+        if os.path.exists(path):
+            os.remove(path)
