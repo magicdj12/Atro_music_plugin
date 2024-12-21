@@ -1,159 +1,154 @@
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+import requests
+from PIL import Image, ImageDraw, ImageFont
 from pyrogram import filters
 from pyrogram.enums import ChatType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from YukkiMusic import app
 
-# لیست اشعار عاشقانه
+# 📅 دریافت تاریخ و ساعت
+def get_dates():
+    timezone = pytz.timezone("Asia/Tehran")
+    now = datetime.now(timezone)
+    jalali_date = now.strftime("%Y/%m/%d")  # اضافه کردن تاریخ شمسی با کتابخانه تبدیل امکان‌پذیر است
+    gregorian_date = now.strftime("%d %B %Y")
+    time = now.strftime("%H:%M:%S")
+    return jalali_date, gregorian_date, time
+
+# 📥 دانلود تصویر از آدرس اینترنتی
+def download_image(url, path):
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(path, "wb") as f:
+            f.write(response.content)
+    return path
+
+# 📜 لیست ۳۰ شعر عاشقانه
 poems = [
-    "تو شعر زندگی منی.",
-    "زندگی با تو یعنی بهشت.",
-    "تو آرامش دل منی.",
-    "با تو دنیا زیباتره.",
-    "تو نبض قلب منی.",
-    "عشق یعنی نام تو.",
-    "تو خورشید زندگی منی.",
-    "زندگی بدون تو بی‌رنگ است.",
-    "قلبم برای تو می‌تپد.",
-    "تو آرزوی هر شب منی.",
-    "در نگاه تو زندگی را یافتم.",
-    "تو دریای آرامش منی.",
-    "زندگی با عشق تو زیباست.",
-    "با تو هر لحظه‌ام خوشبختی است.",
-    "تو صدای قلب منی.",
-    "با تو بودن، رویای من است.",
-    "عشق تو دلیل تپش قلبم است.",
-    "با تو، همه چیز کامل است.",
-    "هر لحظه با تو، بهشت است.",
-    "تو نور زندگی منی.",
-    "با تو، دنیا زیباتر می‌شود.",
-    "قلبم تنها برای تو می‌تپد.",
-    "عشق تو، زندگی‌ام را روشن کرده.",
-    "با تو، زندگی معنای دیگری دارد.",
-    "تو امید هر روز منی.",
-    "قلب من برای تو می‌تپد.",
-    "تو شاهکار زندگی منی.",
-    "با تو، همه چیز زیباست.",
-    "تو دلیل خوشبختی منی.",
+    "✨ تو شعر زندگی منی.", "🌹 عشق تو دلیل تپش قلبم است.", "💫 با تو زندگی رنگ دیگری دارد.",
+    "❤️ تو آفتاب روزهای بارانی منی.", "✨ بدون تو، دنیا تاریک است.", "💖 هر لحظه با تو، یک عمر خوشبختی است.",
+    "🌷 تو بهار قلب منی.", "💎 تو گنج بی‌همتای منی.", "🌙 تو ماه شب‌های تاریک منی.",
+    "🌟 دنیایم با لبخند تو روشن می‌شود.", "🌸 عشق تو چون گلی در باغ دلم شکفته است.",
+    "✨ هر روز با تو یک رؤیای تازه است.", "❤️ قلبم تنها برای تو می‌تپد.",
+    "💐 تو زیباترین هدیه زندگی منی.", "🕊️ عشق تو آزادی روح من است.", "💛 با تو جهان من کامل است.",
+    "🌈 تو رنگین‌کمان روزهای بارانی منی.", "🎵 صدای قلبت، زیباترین موسیقی دنیا است.",
+    "🌺 زندگی بدون تو مانند باغی بدون گل است.", "❤️ تو دلیل خوشبختی منی.",
+    "✨ هر لحظه با تو ارزش یک دنیا را دارد.", "💫 تو خورشید گرمابخش زمستان منی.",
+    "🌷 قلبم برای همیشه مال تو است.", "💖 عشق تو آتشی است که خاموش نمی‌شود.",
+    "🌟 تو تنها دلیل زنده بودنم هستی.", "💐 هر نگاهت، یک شعر عاشقانه است.",
+    "🌹 عشق تو زندگی‌ام را معنا می‌بخشد.", "🕊️ با تو، زندگی یک سفر زیبا است.",
+    "💛 هر لبخند تو، طلوعی جدید است.", "🌈 تو رؤیای شب‌های منی."
 ]
 
-# دریافت تاریخ و زمان فعلی
-def get_datetime_info():
-    now = datetime.now(pytz.timezone("Asia/Tehran"))
-    jalali_date = now.strftime("%Y/%m/%d")
-    gregorian_date = now.strftime("%d %B %Y")
-    time_now = now.strftime("%H:%M:%S")
-    return jalali_date, gregorian_date, time_now
-
-# دایره‌ای کردن تصاویر
-def circle_image(image_path, size):
-    image = Image.open(image_path).resize(size).convert("RGBA")
-    mask = Image.new("L", size, 0)
-    draw = ImageDraw.Draw(mask)
-    draw.ellipse((0, 0) + size, fill=255)
-    output = ImageOps.fit(image, size, centering=(0.5, 0.5))
-    output.putalpha(mask)
-    return output
-
-# دستور زوج
-@app.on_message(filters.command("زوج") & ~filters.private)
+# 🎲 دستور زوج تصادفی
+@app.on_message(filters.command(["زوج", "couple"]) & ~filters.private)
 async def select_couple(_, message):
     chat_id = message.chat.id
 
-    if message.chat.type != ChatType.SUPERGROUP:
+    # دستور فقط در گروه‌ها فعال باشد
+    if message.chat.type == ChatType.PRIVATE:
         return await message.reply_text("❌ این دستور فقط در گروه‌ها فعال است.")
 
-    members = []
-    async for member in app.get_chat_members(chat_id, limit=50):
-        if not member.user.is_bot and not member.user.is_deleted:
-            members.append(member.user)
-
-    if len(members) < 2:
-        return await message.reply_text("❌ اعضای کافی برای انتخاب زوج وجود ندارند.")
-
-    # انتخاب تصادفی کاربران
-    user1 = random.choice(members)
-    user2 = random.choice(members)
-    while user1.id == user2.id:
-        user2 = random.choice(members)
-
-    # دانلود تصاویر پروفایل کاربران
-    p1_path = f"downloads/{user1.id}.png"
-    p2_path = f"downloads/{user2.id}.png"
-    try:
-        photo1 = await app.download_media(user1.photo.big_file_id, file_name=p1_path)
-    except:
-        photo1 = "default_profile.png"
-
-    try:
-        photo2 = await app.download_media(user2.photo.big_file_id, file_name=p2_path)
-    except:
-        photo2 = "default_profile.png"
-
-    # ایجاد پس‌زمینه
-    bg_url = "https://telegra.ph/file/96f36504f149e5680741a.jpg"
-    bg_path = "downloads/background.jpg"
-    background = Image.open(bg_url).convert("RGBA")
-
-    # تصاویر پروفایل کاربران به‌صورت دایره‌ای
-    img1 = circle_image(photo1, (200, 200))
-    img2 = circle_image(photo2, (200, 200))
-
-    # اضافه کردن تصاویر به پس‌زمینه
-    background.paste(img1, (150, 200), img1)
-    background.paste(img2, (600, 200), img2)
-
-    # اضافه کردن نام کاربران
-    draw = ImageDraw.Draw(background)
-    try:
-        font = ImageFont.truetype("arial.ttf", 40)
-    except IOError:
-        font = ImageFont.load_default()
-
-    # نام کاربران دور عکس پروفایل
-    draw.text((150, 420), user1.first_name, font=font, fill="white")
-    draw.text((600, 420), user2.first_name, font=font, fill="white")
-
-    # تاریخ و ساعت
-    jalali_date, gregorian_date, time_now = get_datetime_info()
-    draw.text((50, 600), f"📅 تاریخ شمسی: {jalali_date}", font=font, fill="white")
-    draw.text((50, 650), f"📅 تاریخ میلادی: {gregorian_date}", font=font, fill="white")
-    draw.text((50, 700), f"⏰ ساعت: {time_now}", font=font, fill="white")
-
-# ذخیره تصویر نهایی
+    # مسیر ذخیره تصاویر
+    p1_path = "downloads/p1.png"
+    p2_path = "downloads/p2.png"
     result_path = f"downloads/result_{chat_id}.png"
-    background.save(result_path)
+    bg_path = "downloads/background.png"
 
-    # انتخاب شعر تصادفی
-    random_poem = random.choice(poems)
+    try:
+        # انتخاب اعضای گروه
+        members = []
+        async for member in app.get_chat_members(chat_id):
+            if not member.user.is_bot and not member.user.is_deleted:
+                members.append(member.user)
 
-    # کپشن نهایی
-    caption = f"""
+        if len(members) < 2:
+            return await message.reply_text("❌ اعضای کافی برای انتخاب وجود ندارد.")  # پیام فقط در صورتی که کمتر از ۲ نفر وجود دارد
+
+        # انتخاب دو کاربر تصادفی
+        user1 = random.choice(members)
+        user2 = random.choice(members)
+        while user1.id == user2.id:
+            user2 = random.choice(members)
+
+        # دانلود تصاویر کاربران
+        try:
+            photo1 = await app.download_media(user1.photo.big_file_id, file_name=p1_path)
+        except:
+            photo1 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p1_path)
+
+        try:
+            photo2 = await app.download_media(user2.photo.big_file_id, file_name=p2_path)
+        except:
+            photo2 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p2_path)
+
+        # پس‌زمینه
+        bg_url = "https://telegra.ph/file/96f36504f149e5680741a.jpg"
+        bg_path = download_image(bg_url, bg_path)
+        background = Image.open(bg_path).convert("RGBA")
+
+        # آماده‌سازی تصاویر
+        img1 = Image.open(photo1).resize((400, 400)).convert("RGBA")
+        img2 = Image.open(photo2).resize((400, 400)).convert("RGBA")
+
+        # ماسک دایره‌ای برای تصاویر
+        mask = Image.new("L", (400, 400), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, 400, 400), fill=255)
+        img1.putalpha(mask)
+        img2.putalpha(mask)
+
+        # قرار دادن تصاویر روی پس‌زمینه
+        background.paste(img1, (150, 150), img1)
+        background.paste(img2, (600, 150), img2)
+
+        # اضافه کردن نام کاربران دور تصاویر
+        draw = ImageDraw.Draw(background)
+        try:
+            font = ImageFont.truetype("arial.ttf", 40)
+        except IOError:
+            font = ImageFont.load_default()
+
+        draw.text((200, 570), user1.first_name, font=font, fill="white")
+        draw.text((650, 570), user2.first_name, font=font, fill="white")
+
+        # ذخیره تصویر نهایی
+        background.save(result_path)
+
+        # تاریخ و زمان
+        jalali_date, gregorian_date, time = get_dates()
+
+        # انتخاب شعر تصادفی
+        poem = random.choice(poems)
+
+        # کپشن نهایی
+        caption = f"""
 🌟 زوج امروز گروه:
 
 {user1.first_name} (tg://user?id={user1.id}) ❤️ {user2.first_name} (tg://user?id={user2.id})
 
 📅 تاریخ شمسی: {jalali_date}
 📅 تاریخ میلادی: {gregorian_date}
-⏰ ساعت: {time_now}
+⏰ ساعت: {time}
 
-✨ {random_poem}
-"""
+✨ {poem}
+        """
 
-    # ارسال تصویر
-    await message.reply_photo(
-        photo=result_path,
-        caption=caption,
-        reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton("✨ اضافه کردن من به گروه", url=f"https://t.me/{app.username}?startgroup=true")]]
-        ),
-    )
-
-    # حذف فایل‌های موقت
-    for path in [p1_path, p2_path, result_path]:
-        if os.path.exists(path):
-            os.remove(path)
+        # ارسال تصویر
+        await message.reply_photo(
+            photo=result_path,
+            caption=caption,
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("✨ اضافه کردن من به گروه", url=f"https://t.me/{app.username}?startgroup=true")]]
+            ),
+        )
+    except Exception as e:
+        await message.reply_text(f"⚠️ خطا: {e}")
+    finally:
+        # حذف فایل‌های موقت
+        for path in [p1_path, p2_path, result_path, bg_path]:
+            if os.path.exists(path):
+                os.remove(path)
