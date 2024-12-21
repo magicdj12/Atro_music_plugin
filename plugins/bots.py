@@ -31,7 +31,7 @@ def gregorian_to_persian(date):
     return f"{day} {month} {year}"
 
 # ترکیب فیلترها
-combined_filters = filters.command(["time","^تاریخ^", "^امروز^", "$ساعت$"], prefixes=["", "/"]) & filters.group
+combined_filters = filters.command(["time","$تاریخ$", "^امروز$", "^ساعت^"], prefixes=["", "/"]) & filters.group
 
 # تابع اصلی برای نمایش ساعت و تاریخ
 @app.on_message(combined_filters)
