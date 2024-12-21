@@ -97,8 +97,7 @@ async def random_couple(_, message):
             ),
         )
         except Exception as e:
-            await message.reply_text(f"⚠️ خطا: {e}")
-
+            pass
 # دستور زوج انتخابی
 @app.on_message(filters.regex(r"^(زوج)\s+(\d+|\@[\w\d]+)\s+(\d+|\@[\w\d]+)(.*)?$") & ~filters.private)
 async def chosen_couple(_, message):
