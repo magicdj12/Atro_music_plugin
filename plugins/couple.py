@@ -1,19 +1,17 @@
 import os
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
 import requests
 from PIL import Image, ImageDraw, ImageFont
-from pyrogram import filters
-from pyrogram.enums import ChatType
+from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from YukkiMusic import app
 
 # 📅 دریافت تاریخ و ساعت
 def get_dates():
     timezone = pytz.timezone("Asia/Tehran")
     now = datetime.now(timezone)
-    jalali_date = now.strftime("%Y/%m/%d")  # اضافه کردن تاریخ شمسی با کتابخانه تبدیل امکان‌پذیر است
+    jalali_date = now.strftime("%Y/%m/%d")  # تاریخ شمسی
     gregorian_date = now.strftime("%d %B %Y")
     time = now.strftime("%H:%M:%S")
     return jalali_date, gregorian_date, time
@@ -49,7 +47,7 @@ async def select_couple(_, message):
     chat_id = message.chat.id
 
     # دستور فقط در گروه‌ها فعال باشد
-    if message.chat.type == ChatType.PRIVATE:
+    if message.chat.type == "private":
         return await message.reply_text("❌ این دستور فقط در گروه‌ها فعال است.")
 
     # مسیر ذخیره تصاویر
@@ -98,10 +96,11 @@ async def select_couple(_, message):
         mask = Image.new("L", (400, 400), 0)
         draw = ImageDraw.Draw(mask)
         draw.ellipse((0, 0, 400, 400), fill=255)
+
         img1.putalpha(mask)
         img2.putalpha(mask)
 
-        # قرار دادن تصاویر روی پس‌زمینه
+# قرار دادن تصاویر روی پس‌زمینه
         background.paste(img1, (150, 150), img1)
         background.paste(img2, (600, 150), img2)
 
@@ -112,8 +111,8 @@ async def select_couple(_, message):
         except IOError:
             font = ImageFont.load_default()
 
-        draw.text((200, 570), user1.first_name, font=font, fill="white")
-        draw.text((650, 570), user2.first_name, font=font, fill="white")
+        draw.text((200, 570), f"@{user1.username}" if user1.username else user1.first_name, font=font, fill="white")
+        draw.text((650, 570), f"@{user2.username}" if user2.username else user2.first_name, font=font, fill="white")
 
         # ذخیره تصویر نهایی
         background.save(result_path)
@@ -128,7 +127,7 @@ async def select_couple(_, message):
         caption = f"""
 🌟 زوج امروز گروه:
 
-{user1.first_name} (tg://user?id={user1.id}) ❤️ {user2.first_name} (tg://user?id={user2.id})
+@{user1.username} ❤️ @{user2.username}
 
 📅 تاریخ شمسی: {jalali_date}
 📅 تاریخ میلادی: {gregorian_date}
