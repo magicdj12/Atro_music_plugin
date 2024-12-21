@@ -43,7 +43,7 @@ love_poems = [
     "هر لحظه با تو مثل یک شعر عاشقانه است.",
 ]
 
-# 📅 دریافت تاریخ امروز
+# 📅 دریافت تاریخ و زمان
 def get_date_formats():
     now = datetime.now(pytz.timezone("Asia/Tehran"))
     jalali_date = JalaliDatetime.now().strftime("%Y/%m/%d")
@@ -51,106 +51,62 @@ def get_date_formats():
     time = now.strftime("%H:%M:%S")
     return jalali_date, gregorian_date, time
 
-# 🌹 دستور زوج
-@app.on_message(filters.regex(r"^(زوج|زدوج|Zoj|zoj)$") & ~filters.private)
-async def select_couple(_, message):
-    chat_id = message.chat.id
+# 🌹 طراحی تصویر
+def create_image(user1, user2, photo1_path, photo2_path, poem, custom_text=None):
+    # ایجاد پس‌زمینه
+    background = Image.new("RGB", (1200, 800), (50, 50, 100))
+    draw = ImageDraw.Draw(background)
+    gradient = Image.new("RGBA", background.size, (255, 0, 0, 0))
+    for y in range(gradient.height):
+        opacity = int(255 * (1 - y / gradient.height))
+        draw.rectangle([(0, y), (gradient.width, y + 1)], fill=(255, 105, 180, opacity))
+    background = Image.alpha_composite(background.convert("RGBA"), gradient).convert("RGB")
 
-    if message.chat.type == ChatType.PRIVATE:
-        return await message.reply_text("❌ این دستور فقط در گروه‌ها فعال است.")
+    # اضافه کردن تصاویر کاربران
+    if photo1_path:
+        img1 = Image.open(photo1_path).resize((400, 400)).convert("RGBA")
+        mask1 = Image.new("L", (400, 400), 0)
+        mask_draw = ImageDraw.Draw(mask1)
+        mask_draw.ellipse((0, 0, 400, 400), fill=255)
+        img1.putalpha(mask1)
+        background.paste(img1, (100, 200), img1)
 
-    p1_path = "downloads/p1.png"
-    p2_path = "downloads/p2.png"
-    result_path = f"downloads/love_result_{chat_id}.png"
+    if photo2_path:
+        img2 = Image.open(photo2_path).resize((400, 400)).convert("RGBA")
+        mask2 = Image.new("L", (400, 400), 0)
+        mask_draw = ImageDraw.Draw(mask2)
+        mask_draw.ellipse((0, 0, 400, 400), fill=255)
+        img2.putalpha(mask2)
+        background.paste(img2, (700, 200), img2)
 
-    jalali_date, gregorian_date, current_time = get_date_formats()
-
+    # اضافه کردن اسامی
+    font_path = "arial.ttf"
     try:
-        members = []
-        # گرفتن تمام اعضای گروه
-        async for member in app.get_chat_members(chat_id):
-            if (
-                not member.user.is_bot
-                and not member.user.is_deleted
-                and member.status in [UserStatus.ONLINE, UserStatus.RECENTLY]
-            ):
-                members.append(member.user)
+        font = ImageFont.truetype(font_path, 30)
+    except IOError:
+        font = ImageFont.load_default()
 
-        if len(members) < 2:
-            return await message.reply_text("❌ کاربران کافی برای انتخاب وجود ندارد.")
+    draw.text((200, 650), f"{user1.first_name}", fill="white", font=font)
+    draw.text((800, 650), f"{user2.first_name}", fill="white", font=font)
 
-        # بررسی و انتخاب دو کاربر به صورت تصادفی
-        user1, user2 = random.sample(members, 2)
+    # اضافه کردن شعر
+    draw.text((100, 750), poem, fill="white", font=font)
 
-        # دانلود عکس کاربران
-        try:
-            photo1 = await app.download_media(user1.photo.big_file_id, file_name=p1_path)
-        except Exception:
-            photo1 = None
+    # اضافه کردن متن سفارشی
+    if custom_text:
+        draw.text((300, 50), custom_text, fill="yellow", font=font)
 
-        try:
-            photo2 = await app.download_media(user2.photo.big_file_id, file_name=p2_path)
-        except Exception:
-            photo2 = None
+    # ذخیره تصویر
+    result_path = "downloads/result.png"
+    background.save(result_path)
+    return result_path
 
-        # ایجاد تصویر پس‌زمینه
-        background = Image.new("RGB", (1000, 800), (30, 30, 50))
-        draw = ImageDraw.Draw(background)
+# 👫 دستور زوج (اتفاقی)
+@app.on_message(filters.regex(r"^(زوج|Zoj|zoj)$") & ~filters.private)
+async def random_couple(_, message):
+    # کد انتخاب زوج اتفاقی...
 
-        if photo1:
-            img1 = Image.open(photo1).resize((400, 400)).convert("RGBA")
-            mask = Image.new("L", (400, 400), 0)
-            mask_draw = ImageDraw.Draw(mask)
-            mask_draw.ellipse((0, 0, 400, 400), fill=255)
-            img1.putalpha(mask)
-            background.paste(img1, (100, 200), img1)
-
-        if photo2:
-            img2 = Image.open(photo2).resize((400, 400)).convert("RGBA")
-            mask = Image.new("L", (400, 400), 0)
-            mask_draw = ImageDraw.Draw(mask)
-            mask_draw.ellipse((0, 0, 400, 400), fill=255)
-            img2.putalpha(mask)
-            background.paste(img2, (500, 200), img2)
-
-        # اضافه کردن شعر عاشقانه
-        random_poem = random.choice(love_poems)
-        font_path = "arial.ttf"
-        try:
-            font = ImageFont.truetype(font_path, 40)
-        except IOError:
-            font = ImageFont.load_default()
-
-        text_position = (150, 650)
-        draw.text(text_position, random_poem, fill="white", font=font)
-
-        background.save(result_path)
-
-        # ارسال تصویر همراه با کپشن و کلید شیشه‌ای
-        await message.reply_photo(
-            photo=result_path,
-            caption=(
-                f"💞 زوج امروز:\n👩 {user1.first_name} + 👦 {user2.first_name}\n\n"
-                f"📅 تاریخ شمسی: {jalali_date}\n"
-                f"📆 تاریخ میلادی: {gregorian_date}\n"
-                f"🕒 ساعت: {current_time}\n\n"
-                f"🌹 شعر عاشقانه:\n{random_poem}"
-            ),
-            reply_markup=InlineKeyboardMarkup(
-                [
-                    [
-                        InlineKeyboardButton(
-                            "✨ منو ببر گروهت",
-                            url=f"https://t.me/{app.username}?startgroup=true",
-                        )
-                    ]
-                ]
-            ),
-        )
-
-    except Exception as e:
-        await message.reply_text(f"⚠️ خطا: {e}")
-    finally:
-        for path in [p1_path, p2_path, result_path]:
-            if os.path.exists(path):
-                os.remove(path)
+# 👫 دستور زوج انتخابی
+@app.on_message(filters.regex(r"^(زوج)\s+(\d+|\@[\w\d]+)\s+(\d+|\@[\w\d]+)(.*)?$") & ~filters.private)
+async def chosen_couple(_, message):
+    # کد انتخاب زوج بر اساس ایدی...
