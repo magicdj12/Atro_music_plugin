@@ -1,130 +1,147 @@
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from khayyam import JalaliDatetime
+import pytz
+import requests
 from PIL import Image, ImageDraw, ImageFont
 from pyrogram import filters
 from pyrogram.enums import ChatType, UserStatus
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from YukkiMusic import app
 
-# لیست اشعار عاشقانه
-love_poems = [
-    "تو با قلب ویرانه‌ی من چه کردی؟\nببین عشق دیوانه‌ی من چه کردی؟",
-    "بهترین لحظه‌ام، همین حالاست\nکه تو باشی کنار من، جانم.",
-    "عشق یعنی نگاه تو، یعنی آرامش وجودم.",
-    # سایر اشعار...
-]
-
-# دریافت تاریخ و زمان
+# 📅 دریافت تاریخ امروز
 def get_date_formats():
-    now = datetime.now()
-    jalali_date = JalaliDatetime.now().strftime("%Y/%m/%d")
-    gregorian_date = now.strftime("%Y-%m-%d")
-    time = now.strftime("%H:%M:%S")
-    return jalali_date, gregorian_date, time
+    now = datetime.now(pytz.timezone("Asia/Tehran"))
+    jalali_date = JalaliDatetime.now().strftime("%Y/%m/%d")
+    gregorian_date = now.strftime("%Y-%m-%d")
+    time = now.strftime("%H:%M:%S")
+    return jalali_date, gregorian_date, time
 
-# ایجاد پس‌زمینه و ترکیب تصویر
-def create_couple_image(user1_name, user2_name, photo1_path, photo2_path, custom_text=None):
-    background = Image.new("RGB", (1200, 800), (30, 30, 50))
-    draw = ImageDraw.Draw(background)
+# 📥 دانلود تصویر از URL
+def download_image(url, path):
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(path, "wb") as f:
+            f.write(response.content)
+    return path
 
-    # اضافه کردن تصاویر کاربران
-    if photo1_path:
-        img1 = Image.open(photo1_path).resize((300, 300)).convert("RGBA")
-        mask = Image.new("L", (300, 300), 0)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse((0, 0, 300, 300), fill=255)
-        img1.putalpha(mask)
-        background.paste(img1, (200, 250), img1)
+# 🌹 دستور زوج
+@app.on_message(filters.command(["زوج"]) & ~filters.private)
+async def select_couple(_, message):
+    chat_id = message.chat.id
+    args = message.text.split()
 
-    if photo2_path:
-        img2 = Image.open(photo2_path).resize((300, 300)).convert("RGBA")
-        mask = Image.new("L", (300, 300), 0)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse((0, 0, 300, 300), fill=255)
-        img2.putalpha(mask)
-        background.paste(img2, (700, 250), img2)
+    # فقط در گروه‌ها فعال است
+    if message.chat.type == ChatType.PRIVATE:
+        return await message.reply_text("❌ این دستور فقط در گروه‌ها فعال است.")
 
-    # اضافه کردن اسم کاربران
-    font = ImageFont.truetype("arial.ttf", 40)
-    draw.text((250, 580), user1_name, fill="white", font=font)
-    draw.text((750, 580), user2_name, fill="white", font=font)
+    # مسیر ذخیره تصاویر
+    p1_path = "downloads/p1.png"
+    p2_path = "downloads/p2.png"
+    result_path = f"downloads/love_result_{chat_id}.png"
+    bg_path = "downloads/background_love.png"
 
-    # اضافه کردن متن انتخابی یا شعر عاشقانه
-    if custom_text:
-        draw.text((150, 700), custom_text, fill="white", font=font)
-    else:
-        poem = random.choice(love_poems)
-        draw.text((150, 700), poem, fill="white", font=font)
+    # تاریخ
+    jalali_date, gregorian_date, current_time = get_date_formats()
 
-    # ذخیره تصویر
-    result_path = f"downloads/couple_result.png"
-    background.save(result_path)
-    return result_path
+    try:
+        # بررسی آرگومان‌ها (با یا بدون آیدی)
+        if len(args) >= 3:
+            user1_id = int(args[1].replace("@", ""))
+            user2_id = int(args[2].replace("@", ""))
+            custom_text = " ".join(args[3:]) if len(args) > 3 else None
+            user1 = await app.get_users(user1_id)
+            user2 = await app.get_users(user2_id)
+        else:
+            # انتخاب کاربران آنلاین
+            members = []
+            async for member in app.get_chat_members(chat_id, limit=100):
+                if (
+                    not member.user.is_bot
+                    and not member.user.is_deleted
+                    and member.status == UserStatus.ONLINE
+                ):
+                    members.append(member.user)
 
-# دستور زوج تصادفی
-@app.on_message(filters.regex(r"^(زوج|Zoj|zoj)$") & ~filters.private)
-async def random_couple(_, message):
-    chat_id = message.chat.id
-    try:
-        members = []
-        async for member in app.get_chat_members(chat_id, limit=100):
-            if not member.user.is_bot and member.status in [UserStatus.ONLINE, UserStatus.RECENTLY]:
-                members.append(member.user)
+            if len(members) < 2:
+                return await message.reply_text("❌ کاربران کافی برای انتخاب وجود ندارد.")
 
-        if len(members) < 2:
-            return await message.reply_text("❌ تعداد کاربران کافی نیست.")
+            user1, user2 = random.sample(members, 2)
+            custom_text = None
 
-        user1, user2 = random.sample(members, 2)
-        photo1_path = await app.download_media(user1.photo.big_file_id) if user1.photo else None
-        photo2_path = await app.download_media(user2.photo.big_file_id) if user2.photo else None
+        # دانلود تصاویر پروفایل
+        try:
+            photo1 = await app.download_media(user1.photo.big_file_id, file_name=p1_path)
+        except Exception:
+            photo1 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p1_path)
 
-        result_image = create_couple_image(user1.first_name, user2.first_name, photo1_path, photo2_path)
-        jalali_date, gregorian_date, current_time = get_date_formats()
+        try:
+            photo2 = await app.download_media(user2.photo.big_file_id, file_name=p2_path)
+        except Exception:
+            photo2 = download_image("https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p2_path)
 
-        await message.reply_photo(
-            photo=result_image,
-            caption=(
-                f"💞 زوج امروز:\n👩 {user1.mention} + 👦 {user2.mention}\n\n"
-                f"📅 تاریخ شمسی: {jalali_date}\n"
-                f"📆 تاریخ میلادی: {gregorian_date}\n"
-                f"🕒 ساعت: {current_time}\n\n"
-                f"🌹 یک شعر عاشقانه:\n{random.choice(love_poems)}"
-            ),
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("✨ منو به گروهت اضافه کن", url=f"https://t.me/{app.username}?startgroup=true")]]
-            ),
-        )
-        except Exception as e:
-            pass
-# دستور زوج انتخابی
-@app.on_message(filters.regex(r"^(زوج)\s+(\d+|\@[\w\d]+)\s+(\d+|\@[\w\d]+)(.*)?$") & ~filters.private)
-async def chosen_couple(_, message):
-    try:
-        args = message.text.split()
-        user1 = await app.get_users(args[1])
-        user2 = await app.get_users(args[2])
-        custom_text = args[3] if len(args) > 3 else None
+        # آماده‌سازی تصویر زوج
+        img1 = Image.open(photo1).resize((400, 400)).convert("RGBA")
+        img2 = Image.open(photo2).resize((400, 400)).convert("RGBA")
 
-        photo1_path = await app.download_media(user1.photo.big_file_id) if user1.photo else None
-        photo2_path = await app.download_media(user2.photo.big_file_id) if user2.photo else None
+        # پس‌زمینه
+        bg_url = "https://telegra.ph/file/96f36504f149e5680741a.jpg"
+        bg_path = download_image(bg_url, bg_path)
+        background = Image.open(bg_path).convert("RGBA")
 
-        result_image = create_couple_image(user1.first_name, user2.first_name, photo1_path, photo2_path, custom_text)
-        jalali_date, gregorian_date, current_time = get_date_formats()
+        # ترکیب تصاویر
+        mask = Image.new("L", (400, 400), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, 400, 400), fill=255)
 
-        await message.reply_photo(
-            photo=result_image,
-            caption=(
-                f"💞 زوج انتخابی:\n👩 {user1.mention} + 👦 {user2.mention}\n\n"
-                f"📅 تاریخ شمسی: {jalali_date}\n"
-                f"📆 تاریخ میلادی: {gregorian_date}\n"
-                f"🕒 ساعت: {current_time}\n\n"
-                f"🌹 یک شعر عاشقانه:\n{custom_text if custom_text else random.choice(love_poems)}"
-            ),
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("✨ منو به گروهت اضافه کن", url=f"https://t.me/{app.username}?startgroup=true")]]
-            ),
-        )
-    except Exception as e:
-        await message.reply_text(f"⚠️ خطا: {e}")
+        img1.putalpha(mask)
+        img2.putalpha(mask)
+
+        background.paste(img1, (150, 150), img1)
+        background.paste(img2, (600, 150), img2)
+
+        # اضافه کردن متن عاشقانه
+        draw = ImageDraw.Draw(background)
+        try:
+            font = ImageFont.truetype("arial.ttf", 50)
+        except IOError:
+            font = ImageFont.load_default()
+
+        # متن عاشقانه
+        love_text = custom_text or f"""
+💖 زوج عاشقانه امروز:
+
+{user1.first_name} (tg://user?id={user1.id}) + {user2.first_name} (tg://user?id={user2.id})
+
+📅 تاریخ شروع عشق:
+🕰 ساعت: {current_time}
+📆 شمسی: {jalali_date}
+📅 میلادی: {gregorian_date}
+
+✨ عشق همیشگی 💘
+        """
+
+        # نوشتن متن روی تصویر
+        text_position = (background.width // 4, background.height - 200)
+        draw.text(text_position, love_text, font=font, fill="white")
+
+        # ذخیره تصویر نتیجه
+        background.save(result_path)
+
+        # ارسال تصویر و پیام
+        await message.reply_photo(
+            photo=result_path,
+            caption=love_text,
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("✨ اضافه کردن من به گروه", url=f"https://t.me/{app.username}?startgroup=true")]]
+            ),
+        )
+
+    except Exception as e:
+        await message.reply_text(f"⚠️ خطا: {e}")
+    finally:
+        # حذف فایل‌های موقت
+        for path in [p1_path, p2_path, result_path, bg_path]:
+            if os.path.exists(path):
+                os.remove(path)
