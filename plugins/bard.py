@@ -3,7 +3,7 @@ from pyrogram import filters
 from YukkiMusic import app
 
 # تعریف تابع برای فرمان "love"
-@app.on_message(filters.command(["love", "کراش", "عشق"], prefixes=["", "/"]))
+@app.on_message(filters.command(["love", "^عشق$"], prefixes=["", "/"]))
 async def love_command(client, message):  # افزودن async برای پشتیبانی از همزمانی
     args = message.text.split()[1:]  # حذف دستور و دریافت نام‌ها
     if len(args) >= 2:
