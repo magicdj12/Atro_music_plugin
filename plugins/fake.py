@@ -81,7 +81,7 @@ def get_weather(city_name):
 
 
 # دستور برای نمایش وضعیت آب و هوا (در گروه، پیوی و کانال‌ها)
-@app.on_message(filters.text & filters.regex(r"^(آب و هوای|هوای)\s+(\S+)"))
+@app.on_message(filters.text & filters.regex(r"^(آب و هوای|هوای)\s+([^\s]+)"))
 async def weather(_, message):
     try:
         # دریافت نام شهر از پیام کاربر
