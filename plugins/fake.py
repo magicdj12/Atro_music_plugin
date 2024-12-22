@@ -4,7 +4,7 @@ from YukkiMusic import app
 from datetime import datetime
 
 # وارد کردن کلید API (توکن API OpenWeatherMap)
-API_KEY = "fbad98e4e8954e5ea39164949242212"  # توکن خود را اینجا وارد کنید
+API_KEY = "d4a358f84c4bb3b49d8132a49be0fc20"  # توکن خود را اینجا وارد کنید
 
 # تابع برای گرفتن اطلاعات وضعیت آب و هوا از OpenWeatherMap
 def get_weather(city_name):
