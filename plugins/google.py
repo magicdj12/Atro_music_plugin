@@ -1,16 +1,15 @@
 import logging
-from googlesearch import search
 from pyrogram import Client, filters
 from SafoneAPI import SafoneAPI
 from YukkiMusic import app
+from googlesearch import search
+from youtubesearchpython import VideosSearch  # برای جستجوی یوتیوب
 
-# فعال‌سازی لاگینگ برای ردیابی خطاها و اطلاعات
+# تنظیم لاگینگ
 logging.basicConfig(
-    level=logging.DEBUG,  # تنظیم سطح لاگ به DEBUG برای گرفتن تمام جزئیات
-    format='%(asctime)s - %(levelname)s - %(message)s',  # فرمت نمایش لاگ
-    handlers=[
-        logging.StreamHandler()  # نمایش لاگ‌ها در کنسول
-    ]
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()]
 )
 
 @app.on_message(filters.command(["google", "gle", "گوگل"]))
@@ -19,29 +18,28 @@ async def google(bot, message):
         await message.reply_text("مثال:\n\n/google lord ram")
         return
 
-    # دریافت ورودی از پیام
-    if message.reply_to_message and message.reply_to_message.text:
-        user_input = message.reply_to_message.text
-    else:
-        user_input = " ".join(message.command[1:])
+    user_input = (
+        message.reply_to_message.text if message.reply_to_message and message.reply_to_message.text 
+        else " ".join(message.command[1:])
+    )
 
-    # نمایش پیام اولیه
     b = await message.reply_text("در حال جستجو در گوگل...")
 
     try:
-        # انجام جستجو در گوگل
         logging.debug(f"Searching for: {user_input}")
-        a = search(user_input, num_results=5)
+        results = search(user_input, num_results=5)  # استفاده از googlesearch
+        if not results:
+            await b.edit("هیچ نتیجه‌ای یافت نشد.")
+            return
         
-        txt = f"نتیجه جستجو برای: {user_input}\n\nنتایج:"
-        for result in a:
-            txt += f"\n\n❍ {result.title}\n<b>{result.description}</b>"
-        
+        txt = f"نتایج جستجو برای: {user_input}\n\n"
+        for result in results:
+            txt += f"{result.title}\n{result.description}\n\n"
+
         await b.edit(txt, disable_web_page_preview=True)
     except Exception as e:
         await b.edit("خطا در جستجو.")
-        logging.exception(f"Error while searching Google: {e}")
-
+        logging.exception(f"Google search error: {e}")
 
 @app.on_message(filters.command(["app", "apps", "برنامه"], prefixes=["", "/"]))
 async def app(bot, message):
@@ -49,38 +47,72 @@ async def app(bot, message):
         await message.reply_text("مثال:\n\n/app Free Fire")
         return
 
-    # دریافت ورودی از پیام
-    if message.reply_to_message and message.reply_to_message.text:
-        user_input = message.reply_to_message.text
-    else:
-        user_input = " ".join(message.command[1:])
-    
-    # نمایش پیام اولیه
+    user_input = (
+        message.reply_to_message.text if message.reply_to_message and message.reply_to_message.text 
+        else " ".join(message.command[1:])
+    )
+
     cbb = await message.reply_text("در حال جستجو در Play Store...")
 
     try:
         logging.debug(f"Searching app: {user_input}")
-        # انجام جستجو در Play Store با استفاده از SafoneAPI
-        a = await SafoneAPI().apps(user_input, 1)
-
-        if not a["results"]:
-            await cbb.edit("برنامه‌ای پیدا نشد.")
+        api = SafoneAPI()
+        response = await api.apps(user_input, 1)
+        if not response.get("results"):
+            await cbb.edit("برنامه‌ای یافت نشد.")
             return
-        
-        b = a["results"][0]
-        icon = b["icon"]
-        app_id = b["id"]
-        link = b["link"]
-        description = b["description"]
-        title = b["title"]
-        developer = b["developer"]
 
-        # ساخت اطلاعات برای نمایش
-        info = f"<b>عنوان: {title}</b>\n<b>شناسه:</b> <code>{app_id}</code>\n<b>توسعه‌دهنده:</b> {developer}\n<b>توضیحات:</b> {description}\n<b>لینک دانلود:</b> {link}"
+        app_data = response["results"][0]
+        icon = app_data["icon"]
+        app_id = app_data["id"]
+        link = app_data["link"]
+        description = app_data["description"]
+        title = app_data["title"]
+        developer = app_data["developer"]
 
-        # ارسال عکس و اطلاعات برنامه
+        info = (
+            f"<b>عنوان:</b> {title}\n"
+            f"<b>شناسه:</b> <code>{app_id}</code>\n"
+            f"<b>توسعه‌دهنده:</b> {developer}\n"
+            f"<b>توضیحات:</b> {description}\n"
+            f"<b>لینک دانلود:</b> {link}"
+        )
+
         await message.reply_photo(icon, caption=info)
         await cbb.delete()
     except Exception as e:
-        await message.reply_text(f"خطا در دریافت اطلاعات برنامه: {e}")
-        logging.exception(f"Error while fetching app information: {e}")
+        await cbb.edit("خطا در دریافت اطلاعات برنامه.")
+        logging.exception(f"App search error: {e}")
+
+@app.on_message(filters.command(["youtube", "yt", "یو تیوب"], prefixes=["", "/"]))
+async def youtube(bot, message):
+    if len(message.command) < 2 and not message.reply_to_message:
+        await message.reply_text("مثال:\n\n/youtube python tutorial")
+        return
+
+    user_input = (
+        message.reply_to_message.text if message.reply_to_message and message.reply_to_message.text 
+        else " ".join(message.command[1:])
+    )
+
+    b = await message.reply_text("در حال جستجو در یوتیوب...")
+
+    try:
+        logging.debug(f"Searching YouTube for: {user_input}")
+        searcher = VideosSearch(user_input, limit=5)
+        results = await searcher.next()
+
+        if not results["videos"]:
+            await b.edit("هیچ نتیجه‌ای در یوتیوب یافت نشد.")
+            return
+
+        txt = f"نتایج جستجو در یوتیوب برای: {user_input}\n\n"
+        for result in results["videos"]:
+            video_title = result["title"]
+            video_url = result["link"]
+            video_duration = result["duration"]
+            txt += f"{video_title} - مدت زمان: {video_duration}\n\n"
+            await b.edit(txt, disable_web_page_preview=True)
+    except Exception as e:
+        await b.edit("خطا در جستجو.")
+        logging.exception(f"YouTube search error: {e}")
