@@ -1,24 +1,31 @@
 import requests
-from pyrogram import filters
-from YukkiMusic import app
+from pyrogram import Client, filters
 from datetime import datetime
+import logging
 
-# وارد کردن کلید API (توکن API OpenWeatherMap)
+# تنظیمات لاگ برای اشکال زدایی
+logging.basicConfig(level=logging.DEBUG)
+
+# توکن API برای OpenWeatherMap
 API_KEY = "d4a358f84c4bb3b49d8132a49be0fc20"  # توکن خود را اینجا وارد کنید
 
-# تابع برای گرفتن اطلاعات وضعیت آب و هوا از OpenWeatherMap
+# ساخت اپلیکیشن Pyrogram
+app = Client("weather_bot")
+
+# تابع برای دریافت اطلاعات وضعیت آب و هوا
 def get_weather(city_name):
     url = f"http://api.openweathermap.org/data/2.5/forecast?q={city_name}&cnt=6&appid={API_KEY}&units=metric&lang=fa"
     response = requests.get(url)
     data = response.json()
 
+    # بررسی اینکه داده‌ها دریافت شده‌اند یا خیر
     if data["cod"] != "404":
         city = data["city"]["name"]
         country = data["city"]["country"]
         lat = data["city"]["coord"]["lat"]
         lon = data["city"]["coord"]["lon"]
 
-        # اطلاعات وضعیت خورشید
+        # درخواست وضعیت خورشید
         sun_url = f"http://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&appid={API_KEY}&units=metric&lang=fa"
         sun_response = requests.get(sun_url)
         sun_data = sun_response.json()
@@ -30,7 +37,7 @@ def get_weather(city_name):
         sunrise_time = datetime.utcfromtimestamp(sunrise).strftime('%H:%M:%S')
         sunset_time = datetime.utcfromtimestamp(sunset).strftime('%H:%M:%S')
 
-        # ایجاد گزارش وضعیت آب و هوا
+        # شروع گزارش وضعیت آب و هوا
         weather_report = f"🌍 وضعیت آب و هوا برای {city}, {country} 🌍\n\n"
 
         # آیکون‌های وضعیت آب و هوا
@@ -55,7 +62,7 @@ def get_weather(city_name):
             rain = day_info.get("rain", {}).get("3h", 0)
             snow = day_info.get("snow", {}).get("3h", 0)
 
-            # فرمت پاسخ برای هر روز
+            # اضافه کردن اطلاعات هر روز به گزارش
             weather_report += f"""
 📅 {date} {weather_icon}:
    🌡 دما: {temp}°C (احساس دما: {feels_like}°C)
@@ -80,20 +87,24 @@ def get_weather(city_name):
         return "متاسفانه اطلاعاتی برای این شهر یافت نشد. لطفا دوباره تلاش کنید."
 
 
-# دستور برای نمایش وضعیت آب و هوا (در گروه، پیوی و کانال‌ها)
+# دستور برای دریافت وضعیت آب و هوا
 @app.on_message(filters.text & filters.regex(r"^(آب و هوای|هوای)\s+([^\s]+)"))
 async def weather(_, message):
     try:
         # دریافت نام شهر از پیام کاربر
         city_name = message.text.split(maxsplit=1)[1].strip()
+        logging.debug(f"City Name: {city_name}")  # لاگ نام شهر وارد شده
 
         # دریافت اطلاعات وضعیت آب و هوا
         weather_info = get_weather(city_name)
+        logging.debug(f"Weather Info: {weather_info}")  # لاگ وضعیت آب و هوا
 
-        # ارسال وضعیت آب و هوا به کاربر
+        # ارسال پاسخ به کاربر
         await message.reply_text(weather_info)
 
     except IndexError:
+        logging.error("Error: No city provided")  # لاگ خطا در صورت عدم ارسال نام شهر
         await message.reply_text("لطفا نام شهری را وارد کنید. مثال: آب و هوای تهران")
     except Exception as e:
+        logging.error(f"Unexpected error: {e}")  # لاگ خطاهای غیرمنتظره
         await message.reply_text(f"خطا: {e}")
