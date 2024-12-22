@@ -80,19 +80,18 @@ def get_weather(city_name):
         return "متاسفانه اطلاعاتی برای این شهر یافت نشد. لطفا دوباره تلاش کنید."
 
 
-# دستور برای نمایش وضعیت آب و هوا
-@app.on_message(filters.command(["هوا", "weather", "آب و هوا"], prefixes=["", "/"]))
+# دستور برای نمایش وضعیت آب و هوا (در گروه، پیوی و کانال‌ها)
+@app.on_message(filters.text & filters.regex(r"^(آب و هوای|هوای)\s+(\S+)"))
 async def weather(_, message):
     try:
         # دریافت نام شهر از پیام کاربر
-        if message.text.startswith("آب و هوای") or message.text.startswith("هوای"):
-            city_name = message.text.split(maxsplit=1)[1].strip()
+        city_name = message.text.split(maxsplit=1)[1].strip()
 
-            # دریافت اطلاعات وضعیت آب و هوا
-            weather_info = get_weather(city_name)
+        # دریافت اطلاعات وضعیت آب و هوا
+        weather_info = get_weather(city_name)
 
-            # ارسال وضعیت آب و هوا به کاربر
-            await message.reply_text(weather_info)
+        # ارسال وضعیت آب و هوا به کاربر
+        await message.reply_text(weather_info)
 
     except IndexError:
         await message.reply_text("لطفا نام شهری را وارد کنید. مثال: آب و هوای تهران")
