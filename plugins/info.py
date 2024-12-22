@@ -38,15 +38,15 @@ async def userstatus(user_id):
         user = await app.get_users(user_id)
         x = user.status
         if x == enums.UserStatus.RECENTLY:
-            return "🟢 وضعیت: به‌تازگی آنلاین شده است."
+            return "🟢 به‌تازگی آنلاین شده است."
         elif x == enums.UserStatus.LAST_WEEK:
             return "🕒 آخرین بازدید: هفته گذشته."
         elif x == enums.UserStatus.LONG_AGO:
             return "📅 آخرین بازدید: مدت زمان طولانی پیش."
         elif x == enums.UserStatus.OFFLINE:
-            return "🔘 وضعیت: آفلاین."
+            return "🔘 آفلاین."
         elif x == enums.UserStatus.ONLINE:
-            return "🟢 وضعیت: آنلاین."
+            return "🟢 آنلاین."
     except Exception:
         return "⚠️ خطا: مشکلی رخ داده است. لطفاً دوباره تلاش کنید!"
 
@@ -59,12 +59,12 @@ async def get_user_info(user, already=False):
     online = await userstatus(user_id)
     username = user.username
     first_name = user.first_name
-    mention = user.mention("🌐 لینک به پروفایل")
+    mention = user.mention("🌐 لینک پروفایل")
     dc_id = user.dc_id
     photo_id = user.photo.big_file_id if user.photo else None
     is_gbanned = await is_gbanned_user(user_id)
     is_sudo = user_id in SUDOERS
-    is_premium = "💎 بله" if user.is_premium else "❌ خیر"
+    is_premium = "💎 دارد" if user.is_premium else "❌ ندارد"
 
     body = {
         "👤 نام:": [first_name],
@@ -104,7 +104,7 @@ async def get_chat_info(chat):
 """
     return info, photo_id
 
-@app.on_message(filters.command(["info", "$ایدی^"], prefixes=["", "/"]))
+@app.on_message(filters.command(["info", "ایدی","id","آیدی"], prefixes=["", "/"]))
 async def info_func(_, message: Message):
     if message.reply_to_message:
         user = message.reply_to_message.from_user.id
@@ -134,7 +134,7 @@ async def info_func(_, message: Message):
     await m.delete()
     os.remove(photo)
 
-@app.on_message(filters.command(["chatinfo", "$چت ایدی^"], prefixes=["", "/"]))
+@app.on_message(filters.command(["chatinfo", "چت ایدی"], prefixes=["", "/"]))
 async def chat_info_func(_, message: Message):
     splited = message.text.split()
     if len(splited) == 1:
