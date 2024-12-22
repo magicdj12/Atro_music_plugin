@@ -1,7 +1,6 @@
-import asyncio
 from datetime import datetime
-import jdatetime  # برای تاریخ شمسی
-from pytz import timezone  # برای تنظیم منطقه زمانی
+import jdatetime
+from pytz import timezone
 from pyrogram import filters
 from YukkiMusic import app
 
@@ -30,46 +29,42 @@ def gregorian_to_persian(date):
     year = date.year
     return f"{day} {month} {year}"
 
-# ترکیب فیلترها
-combined_filters = filters.command(["time","$تاریخ$", "^امروز$", "^ساعت^"], prefixes=["", "/"]) & filters.group
+# فیلتر دستورات خاص
+valid_commands = ["ساعت", "امروز", "تاریخ"]
+exact_command_filter = filters.text & filters.group & (filters.regex(f"^({'|'.join(valid_commands)})$"))
 
-# تابع اصلی برای نمایش ساعت و تاریخ
-@app.on_message(combined_filters)
+# تابع اصلی
+@app.on_message(exact_command_filter)
 async def show_datetime(client, message):
     try:
         # تنظیم منطقه زمانی
         iran_tz = timezone("Asia/Tehran")
         afghanistan_tz = timezone("Asia/Kabul")
 
-        # ساعت و تاریخ در هر منطقه
+        # دریافت زمان و تاریخ
         iran_time = datetime.now(iran_tz)
         afghanistan_time = datetime.now(afghanistan_tz)
 
-        # تبدیل تاریخ و زمان
         jalali_date = gregorian_to_jalali(iran_time)
         gregorian_date = gregorian_to_persian(iran_time)
 
-        # قالب‌بندی زمان‌ها
-        iran_formatted_time = iran_time.strftime("%I:%M %p")
-        afghanistan_formatted_time = afghanistan_time.strftime("%I:%M %p")
+        iran_formatted_time = iran_time.strftime("%H:%M")
+        afghanistan_formatted_time = afghanistan_time.strftime("%H:%M")
 
-        # متن خروجی
-        text = f"""
-🌟 **اطلاعات ساعت و تاریخ** 🌟
+        # پاسخ
+        text = f"""🌟 اطلاعات ساعت و تاریخ 🌟
 
 🕰 ساعت‌ها:
-   🇮🇷 **ایران**: {iran_formatted_time}
-   🇦🇫 **افغانستان**: {afghanistan_formatted_time}
+   🇮🇷 ایران: {iran_formatted_time}
+   🇦🇫 افغانستان: {afghanistan_formatted_time}
 
 📅 تاریخ‌ها:
-   🌞 **شمسی**: {jalali_date}
-   🌍 **میلادی**: {gregorian_date}
+   🌞 شمسی: {jalali_date}
+   🌍 میلادی: {gregorian_date}
 
-✨ **یک روز فوق‌العاده برای شما!** ✨
-        """
-
-        # ارسال پیام
+✨ یک روز فوق‌العاده برای شما! ✨
+"""
         await app.send_message(message.chat.id, text)
     except Exception as e:
-        await asyncio.sleep(1)
-        print(f"Error: {e}")
+        print(f"خطا رخ داده: {e}")
+        await message.reply("⚠️ مشکلی در دریافت ساعت و تاریخ رخ داده است.")
