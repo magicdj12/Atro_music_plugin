@@ -6,7 +6,7 @@ from utils.permissions import adminsOnly, member_permissions  # در صورت ن
 
 # لیست کانال‌های جوین اجباری
 mandatory_channels = {
-    -1002112347966: "hdhdhdhd"  # {channel_id: "نام کانال"}
+    -1002143656494: "عضویت در کانال"  # {channel_id: "نام کانال"}
 }
 OWNER_ID = [1924774929]  # شناسه عددی مالک (عدد)
 
