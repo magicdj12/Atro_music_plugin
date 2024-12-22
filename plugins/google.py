@@ -16,7 +16,7 @@ logging.basicConfig(
 @app.on_message(filters.command(["google", "gle", "گوگل"]))
 async def google(bot, message):
     if len(message.command) < 2 and not message.reply_to_message:
-        await message.reply_text("Example:\n\n/google lord ram")
+        await message.reply_text("مثال:\n\n/google lord ram")
         return
 
     # دریافت ورودی از پیام
@@ -26,27 +26,27 @@ async def google(bot, message):
         user_input = " ".join(message.command[1:])
 
     # نمایش پیام اولیه
-    b = await message.reply_text("Sᴇᴀʀᴄʜɪɴɢ ᴏɴ Gᴏᴏɢʟᴇ....")
-    
+    b = await message.reply_text("در حال جستجو در گوگل...")
+
     try:
         # انجام جستجو در گوگل
         logging.debug(f"Searching for: {user_input}")
         a = search(user_input, num_results=5)
         
-        txt = f"Search Query: {user_input}\n\nresults:"
+        txt = f"نتیجه جستجو برای: {user_input}\n\nنتایج:"
         for result in a:
             txt += f"\n\n❍ {result.title}\n<b>{result.description}</b>"
         
         await b.edit(txt, disable_web_page_preview=True)
     except Exception as e:
-        await b.edit("An error occurred while searching.")
+        await b.edit("خطا در جستجو.")
         logging.exception(f"Error while searching Google: {e}")
 
 
 @app.on_message(filters.command(["app", "apps", "برنامه"], prefixes=["", "/"]))
 async def app(bot, message):
     if len(message.command) < 2 and not message.reply_to_message:
-        await message.reply_text("Example:\n\n/app Free Fire")
+        await message.reply_text("مثال:\n\n/app Free Fire")
         return
 
     # دریافت ورودی از پیام
@@ -56,15 +56,15 @@ async def app(bot, message):
         user_input = " ".join(message.command[1:])
     
     # نمایش پیام اولیه
-    cbb = await message.reply_text("Sᴇᴀʀᴄʜɪɴɢ ᴏɴ Pʟᴀʏ Sᴛᴏʀᴇ....")
-    
+    cbb = await message.reply_text("در حال جستجو در Play Store...")
+
     try:
         logging.debug(f"Searching app: {user_input}")
         # انجام جستجو در Play Store با استفاده از SafoneAPI
         a = await SafoneAPI().apps(user_input, 1)
-        
+
         if not a["results"]:
-            await cbb.edit("No results found for the app.")
+            await cbb.edit("برنامه‌ای پیدا نشد.")
             return
         
         b = a["results"][0]
@@ -76,10 +76,11 @@ async def app(bot, message):
         developer = b["developer"]
 
         # ساخت اطلاعات برای نمایش
-        info = f"<b>ᴛɪᴛʟᴇ : {title}</b>\n<b>ɪᴅ</b>: <code>{app_id}</code>\n<b>ᴅᴇᴠᴇʟᴏᴘᴇʀ</b>: {developer}\n<b>ᴅᴇsᴄʀɪᴘᴛɪᴏɴ</b>: {description}"
-        
+        info = f"<b>عنوان: {title}</b>\n<b>شناسه:</b> <code>{app_id}</code>\n<b>توسعه‌دهنده:</b> {developer}\n<b>توضیحات:</b> {description}\n<b>لینک دانلود:</b> {link}"
+
+        # ارسال عکس و اطلاعات برنامه
         await message.reply_photo(icon, caption=info)
         await cbb.delete()
     except Exception as e:
-        await message.reply_text(f"An error occurred: {e}")
+        await message.reply_text(f"خطا در دریافت اطلاعات برنامه: {e}")
         logging.exception(f"Error while fetching app information: {e}")
