@@ -9,7 +9,6 @@ from TheApi import api
 from YukkiMusic import app
 from utils import get_couple, get_image, save_couple
 
-
 # لیست اشعار عاشقانه
 poems = [
     "تو تنها دلیل زندگی منی ❤️",
@@ -52,12 +51,12 @@ def download_image(url, path):
     return path
 
 
-@app.on_message(filters.command(["زوج", "زوج‌ها"]))
+@app.on_message(filters.text & filters.group)
 async def couple_handler(_, message):
-    cid = message.chat.id
-    if message.chat.type == ChatType.PRIVATE:
-        return await message.reply_text("این دستور فقط در گروه‌ها کار می‌کند.")
+    if not message.text.startswith("زوج"):
+        return
 
+    cid = message.chat.id
     args = message.text.split()
     p1_path = "downloads/pfp.png"
     p2_path = "downloads/pfp1.png"
@@ -101,14 +100,14 @@ async def couple_handler(_, message):
             p1 = await app.download_media(photo1.big_file_id, file_name=p1_path)
         except Exception:
             p1 = download_image(
-                "https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p1_path)
+                "https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p1_path
+            )
         try:
             p2 = await app.download_media(photo2.big_file_id, file_name=p2_path)
         except Exception:
             p2 = download_image(
                 "https://telegra.ph/file/05aa686cf52fc666184bf.jpg", p2_path
             )
-
         img1 = Image.open(p1).resize((437, 437))
         img2 = Image.open(p2).resize((437, 437))
         mask = Image.new("L", img1.size, 0)
