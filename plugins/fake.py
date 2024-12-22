@@ -12,7 +12,7 @@ def get_weather(city_name):
     response = requests.get(url)
     data = response.json()
 
-    if data["cod"] != "404":
+    if data.get("cod") != "404":
         city = data["city"]["name"]
         country = data["city"]["country"]
         lat = data["city"]["coord"]["lat"]
@@ -80,16 +80,19 @@ async def weather(_, message):
     try:
         text = message.text.lower()
 
-        if text.startswith("آب و هوای ") or text.startswith("هوای "):
-            # گرفتن نام شهر از دستور کاربر
-            city_name = text.split(maxsplit=1)[1].strip()
+        # بررسی دستور و دریافت نام شهر
+        if "آب و هوای" in text or "هوای" in text:
+            parts = text.split(maxsplit=1)
 
-            # دریافت اطلاعات آب و هوا
-            weather_info = get_weather(city_name)
+            if len(parts) > 1:
+                city_name = parts[1].strip()
 
-            # ارسال وضعیت آب و هوا
-            await message.reply_text(weather_info)
-    except IndexError:
-        await message.reply_text("لطفا نام شهری را وارد کنید. مثال: آب و هوای تهران")
+                # دریافت اطلاعات وضعیت آب و هوا
+                weather_info = get_weather(city_name)
+
+                # ارسال وضعیت آب و هوا به کاربر
+                await message.reply_text(weather_info)
+            else:
+                await message.reply_text("لطفا نام شهری را وارد کنید. مثال: آب و هوای تهران")
     except Exception as e:
         await message.reply_text(f"خطا: {e}")
