@@ -1,6 +1,7 @@
 import logging
 from pyrogram import Client, enums, filters
 from pyrogram.types import ChatPermissions
+from YukkiMusic import app
 
 # فعال‌سازی لاگ برای اشکال‌زدایی
 logging.basicConfig(level=logging.DEBUG)
