@@ -20,12 +20,12 @@ def adminsOnly(permission: str):
                 else:
                     await message.reply_text("شما دسترسی لازم برای اجرای این دستور را ندارید.")
             except Exception as e:
-                await message.reply_text("خطا در بررسی دسترسی‌ها.")
-        return wrapper
-    return decorator
+                # await message.reply_text("خطا در بررسی دسترسی‌ها.")
+        # return wrapper
+    # return decorator
 
 # دستور حذف عکس پروفایل گروه
-@app.on_message(filters.command("removephoto"))
+@app.on_message(filters.command(["removephoto","حذف عکس"]))
 @adminsOnly("can_change_info")
 async def deletechatphoto(_, message):
     try:
@@ -50,7 +50,7 @@ async def deletechatphoto(_, message):
         await message.reply_text("خطا در اجرای دستور!")
 
 # دستور تنظیم عکس پروفایل گروه
-@app.on_message(filters.command("setphoto"))
+@app.on_message(filters.command(["setphoto","تنظیم عکس"]))
 @adminsOnly("can_change_info")
 async def setchatphoto(_, message):
     reply = message.reply_to_message
