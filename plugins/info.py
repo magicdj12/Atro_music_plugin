@@ -1,6 +1,6 @@
 import os
-
 from pyrogram import enums, filters
+from pyrogram.enums import ChatType
 from pyrogram.types import Message
 from YukkiMusic import app
 from YukkiMusic.misc import SUDOERS
@@ -73,7 +73,7 @@ async def get_user_info(user, already=False):
         "📍 شماره دیتاسنتر:": dc_id,
         "🔗 لینک:": [mention],
         "💎 حساب پریمیوم:": is_premium,
-        "⏱ آخرین بازدید:": online,
+        "⏱️ آخرین بازدید:": online,
     }
     caption = section("✨ اطلاعات کامل کاربر ✨", body)
     return [caption, photo_id]
@@ -98,14 +98,18 @@ async def get_chat_info(chat):
 👑 سازنده گروه: {"✅ بله" if chat.is_creator else "❌ خیر"}
 ⚠️ کلاه‌برداری: {"✅ بله" if chat.is_scam else "❌ خیر"}
 ❌ جعلی: {"✅ بله" if chat.is_fake else "❌ خیر"}
-👥 تعداد اعضا: {chat.members_count if chat.members_count else "🔸 **نامشخص**"}لینک:ک:** {link}
-
+👥 تعداد اعضا: {chat.members_count if chat.members_count else "🔸 نامشخص"}
+لینک: {link}
 ──────────────────────
 """
     return info, photo_id
 
-@app.on_message(filters.command(["info", "ایدی","id","آیدی"], prefixes=["", "/"]))
+@app.on_message(filters.command(["info", "ایدی", "id", "آیدی"], prefixes=["", "/"]))
 async def info_func(_, message: Message):
+    # بررسی نوع چت
+    if message.chat.type not in [ChatType.PRIVATE, ChatType.GROUP, ChatType.SUPERGROUP]:
+        return await message.reply_text("⚠️ این دستور فقط در گروه‌ها و پیوی‌ها فعال است.")
+
     if message.reply_to_message:
         user = message.reply_to_message.from_user.id
     elif not message.reply_to_message and len(message.command) == 1:
@@ -128,8 +132,8 @@ async def info_func(_, message: Message):
 
     if not photo_id:
         return await m.edit(info_caption, disable_web_page_preview=True)
-    photo = await app.download_media(photo_id)
 
+    photo = await app.download_media(photo_id)
     await message.reply_photo(photo, caption=info_caption, quote=False)
     await m.delete()
     os.remove(photo)
