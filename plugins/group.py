@@ -22,7 +22,7 @@ def adminsOnly(permission: str):
                     await message.reply_text("شما دسترسی لازم برای اجرای این دستور را ندارید.")
             except Exception as e:
                 await message.reply_text("خطا در بررسی دسترسی‌ها.")
-         return wrapper
+          return wrapper
     return decorator
 
 # دستور حذف عکس پروفایل گروه
