@@ -1,5 +1,5 @@
 import os
-from pyrogram import enums, filters
+from pyrogram import filters
 from pyrogram.enums import ChatType
 from pyrogram.types import Message
 from YukkiMusic import app
@@ -106,29 +106,29 @@ async def get_chat_info(chat):
 
 @app.on_message(filters.command(["info", "ایدی", "id", "آیدی"], prefixes=["", "/"]))
 async def info_func(_, message: Message):
-    # بررسی نوع چت
-    if message.chat.type not in [ChatType.PRIVATE, ChatType.GROUP, ChatType.SUPERGROUP]:
-        return await message.reply_text("⚠️ این دستور فقط در گروه‌ها و پیوی‌ها فعال است.")
+    # چک کردن نوع چت
+    if message.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]:
+        return await message.reply_text("⚠️ این دستور فقط در گروه‌ها قابل اجراست.")
 
+    # پردازش شناسه کاربری
     if message.reply_to_message:
         user = message.reply_to_message.from_user.id
-    elif not message.reply_to_message and len(message.command) == 1:
+    elif len(message.command) == 1:
         user = message.from_user.id
-    elif not message.reply_to_message and len(message.command) != 1:
+    else:
         user_input = message.text.split(None, 1)[1]
         if user_input.isdigit():
             user = int(user_input)
         elif user_input.startswith("@"):
             user = user_input
         else:
-            return await message.reply_text("⚠️ لطفاً شناسه یا نام کاربری را وارد کنید.")
+            return await message.reply_text("⚠️ لطفاً شناسه یا نام کاربری معتبر وارد کنید.")
 
     m = await message.reply_text("⏳ در حال پردازش...")
-
     try:
         info_caption, photo_id = await get_user_info(user)
     except Exception as e:
-        return await m.edit(str(e))
+        return await m.edit(f"⚠️ خطا: {e}")
 
     if not photo_id:
         return await m.edit(info_caption, disable_web_page_preview=True)
@@ -140,24 +140,23 @@ async def info_func(_, message: Message):
 
 @app.on_message(filters.command(["chatinfo", "چت ایدی"], prefixes=["", "/"]))
 async def chat_info_func(_, message: Message):
-    splited = message.text.split()
-    if len(splited) == 1:
-        chat = message.chat.id
-        if chat == message.from_user.id:
-            return await message.reply_text("⚠️ دستور صحیح: /chatinfo [نام کاربری یا شناسه]")
-    else:
-        chat = splited[1]
+    # چک کردن نوع چت
+    if message.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]:
+        return await message.reply_text("⚠️ این دستور فقط در گروه‌ها قابل اجراست.")
+
+    # دریافت اطلاعات چت
+    chat = message.chat.id
+    if len(message.text.split()) > 1:
+        chat = message.text.split(None, 1)[1]
 
     try:
         m = await message.reply_text("⏳ در حال پردازش...")
-
         info_caption, photo_id = await get_chat_info(chat)
         if not photo_id:
             return await m.edit(info_caption, disable_web_page_preview=True)
 
         photo = await app.download_media(photo_id)
         await message.reply_photo(photo, caption=info_caption, quote=False)
-
         await m.delete()
         os.remove(photo)
     except Exception as e:
