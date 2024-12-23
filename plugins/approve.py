@@ -1,4 +1,4 @@
-"""from pyrogram import filters
+'''from pyrogram import filters
 from pyrogram.enums import ChatMembersFilter
 from pyrogram.errors.exceptions.bad_request_400 import UserAlreadyParticipant
 from pyrogram.types import ChatJoinRequest
@@ -209,7 +209,7 @@ async def manual(app, cb):
         {"chat_id": chat.id},
         {"$pull": {"pending_users": int(id)}},
     )
-    return await cb.message.delete()"""
+    return await cb.message.delete()'''
 
 
 # __MODULE__ = "تاییدخودکار"
