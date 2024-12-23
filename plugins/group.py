@@ -2,7 +2,27 @@ from pyrogram import Client, enums, filters
 from YukkiMusic import app
 from utils.permissions import adminsOnly
 
-@app.on_message(filters.regex(r"^(removephoto|حذف پروف)$"))
+# تعریف دستورات
+COMMANDS = {
+    "removephoto": "حذف پروف",
+    "setphoto": "تنظیم پروف",
+    "settitle": "تنظیم نام",
+    "setdescription": "تنظیم بیو"
+}
+
+@app.on_message(filters.text)
+async def handle_commands(_, message):
+    command = message.text.split()[0].lower()
+    if command in COMMANDS or command in COMMANDS.values():
+        if command in ["removephoto", "حذف پروف"]:
+            await deletechatphoto(_, message)
+        elif command in ["setphoto", "تنظیم پروف"]:
+            await setchatphoto(_, message)
+        elif command in ["settitle", "تنظیم نام"]:
+            await setgrouptitle(_, message)
+        elif command in ["setdescription", "تنظیم بیو"]:
+            await setg_discription(_, message)
+
 @adminsOnly("can_change_info")
 async def deletechatphoto(_, message):
     chat_id = message.chat.id
@@ -21,7 +41,6 @@ async def deletechatphoto(_, message):
     except Exception as e:
         await msg.edit(f"خطایی رخ داد: {e}")
 
-@app.on_message(filters.regex(r"^(setphoto|تنظیم پروف)$"))
 @adminsOnly("can_change_info")
 async def setchatphoto(_, message):
     reply = message.reply_to_message
@@ -45,7 +64,6 @@ async def setchatphoto(_, message):
     except Exception as e:
         await msg.edit(f"خطایی رخ داد: {e}")
 
-@app.on_message(filters.regex(r"^(settitle|تنظیم نام)$"))
 @adminsOnly("can_change_info")
 async def setgrouptitle(_, message):
     chat_id = message.chat.id
@@ -70,7 +88,6 @@ async def setgrouptitle(_, message):
     except Exception as e:
         await msg.edit(f"خطایی رخ داد: {e}")
 
-@app.on_message(filters.regex(r"^(setdiscription|setdesc|تنظیم بیو)$"))
 @adminsOnly("can_change_info")
 async def setg_discription(_, message):
     chat_id = message.chat.id
@@ -87,7 +104,6 @@ async def setg_discription(_, message):
         return
     try:
         admin_check = await app.get_chat_member(chat_id, user_id)
-
         if admin_check.privileges.can_change_info:
             await app.set_chat_description(chat_id, description)
             await msg.edit(f"توضیحات جدید گروه تغییر یافت!\nتوسط {message.from_user.mention}")
