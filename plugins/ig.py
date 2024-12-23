@@ -5,7 +5,7 @@ from pyrogram import filters
 from YukkiMusic import app
 
 
-@app.on_message(filters.command(["دان", "اینستا", "ویدیو", "ریلز"]))
+@app.on_message(filters.command(["دان", "اینستا", "ویدیو", "ریلز"], prefixes=["", "/"]))
 async def download_instagram_video(client, message):
     if len(message.command) < 2:
         await message.reply_text("لطفاً لینک ویدئو یا ریلز اینستاگرام را بعد از دستور وارد کنید.")
