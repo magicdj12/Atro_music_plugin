@@ -1,7 +1,8 @@
 import logging
-from pyrogram import Client, enums, filters
-from pyrogram.types import ChatPermissions
+from pyrogram import enums, filters
 from YukkiMusic import app
+
+from utils.permissions import adminsOnly
 
 # فعال‌سازی لاگ برای اشکال‌زدایی
 logging.basicConfig(level=logging.DEBUG)
@@ -20,9 +21,9 @@ def adminsOnly(permission: str):
                 else:
                     await message.reply_text("شما دسترسی لازم برای اجرای این دستور را ندارید.")
             except Exception as e:
-                # await message.reply_text("خطا در بررسی دسترسی‌ها.")
-        # return wrapper
-    # return decorator
+                await message.reply_text("خطا در بررسی دسترسی‌ها.")
+         return wrapper
+    return decorator
 
 # دستور حذف عکس پروفایل گروه
 @app.on_message(filters.command(["removephoto","حذف عکس"]))
