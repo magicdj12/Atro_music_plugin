@@ -32,7 +32,7 @@ from utils.permissions import adminsOnly, member_permissions
 
 warnsdb = mongodb.warns
 
-__MODULE__ = "امنیت گروه"
+# __MODULE__ = "امنیت گروه"
 __HELP__ = """
 
 دستورات برای امنیت گروه
